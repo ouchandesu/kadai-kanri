@@ -142,6 +142,13 @@
             background-color: #c03030;   /* 少し濃い赤に変える */
         }
 
+        /* 授業名を小さめに表示するスタイル（課題名の上に置く補足情報） */
+        .task-subject {
+            font-size: 0.8rem;       /* 課題名より小さいフォントサイズにする */
+            color: #888;             /* やや薄いグレーで目立ちすぎないようにする */
+            margin-bottom: 2px;      /* 課題名との間に少し余白を入れる */
+        }
+
         /* 課題名を強調表示するスタイル */
         .task-name {
             font-size: 1.1rem;       /* 課題名をやや大きく */
@@ -168,6 +175,12 @@
     <!-- ===== 入力フォームエリア ===== -->
     <div class="form-box"> <!-- フォームをボックスで囲む -->
         <h2>課題を登録する</h2> <!-- フォームのタイトル（編集中は「更新する」に変わる） -->
+
+        <!-- 授業名の入力グループ（任意入力のため必須マークなし） -->
+        <div class="form-group">
+            <label for="taskSubject">授業名 <span style="font-weight:normal; color:#999; font-size:0.85rem;">（任意）</span></label> <!-- for属性でinputと紐付け、任意であることを明示する -->
+            <input type="text" id="taskSubject" placeholder="例：数学・英語など"> <!-- 授業名を入力するテキストボックス（空白でも登録可能） -->
+        </div>
 
         <!-- 課題名の入力グループ -->
         <div class="form-group">
@@ -240,10 +253,17 @@
             var li = document.createElement('li'); // 新しい<li>要素を生成する
             li.dataset.id = task.id;               // 削除・編集時に課題を特定できるよう、IDを<li>のdata属性に紐付ける
 
+            // 授業名が入力されている場合のみ表示するHTML文字列を事前に組み立てる
+            // 空文字・未定義の場合は空文字列にして授業名行自体を非表示にする
+            var subjectHtml = (task.subject && task.subject !== '')      // 授業名が存在し空でないか確認する
+                ? '<div class="task-subject">🏫 ' + escapeHtml(task.subject) + '</div>' // 授業名を表示するHTML（XSS対策でエスケープ）
+                : '';                                                                    // 授業名がなければ空文字列にして行を出さない
+
             // <li>の中身をHTMLで組み立てる
-            // 左側：課題情報（名前・期限・提出方法）、右側：編集ボタン＋削除ボタン
+            // 左側：課題情報（授業名・課題名・期限・提出方法）、右側：編集ボタン＋削除ボタン
             li.innerHTML =
                 '<div class="task-info">' +                                                        // 課題情報をまとめるコンテナ開始
+                  subjectHtml +                                                                    // 授業名（入力されている場合のみ表示）
                   '<span class="task-name">' + escapeHtml(task.name) + '</span>' +                // 課題名（XSS対策でエスケープ）
                   '<div class="task-detail">📅 期限：' + deadlineJP + '</div>' +                  // 期限を日本語表示
                   '<div class="task-detail">📬 提出方法：' + escapeHtml(task.method) + '</div>' + // 提出方法
@@ -309,11 +329,12 @@
         // -----------------------------------------------------------------
         function addTask() {
             // 各入力欄の値を取得し、前後の空白を除去する
-            var name     = document.getElementById('taskName').value.trim(); // 課題名
-            var deadline = document.getElementById('taskDeadline').value;    // 期限（YYYY-MM-DDTHH:MM形式）
-            var method   = document.getElementById('taskMethod').value;      // 提出方法
+            var subject  = document.getElementById('taskSubject').value.trim(); // 授業名（任意のため空白でも可）
+            var name     = document.getElementById('taskName').value.trim();    // 課題名
+            var deadline = document.getElementById('taskDeadline').value;       // 期限（YYYY-MM-DDTHH:MM形式）
+            var method   = document.getElementById('taskMethod').value;         // 提出方法
 
-            // 課題名が未入力の場合はアラートを出して処理を止める
+            // 課題名が未入力の場合はアラートを出して処理を止める（授業名は任意なのでチェックしない）
             if (name === '') {
                 alert('課題名を入力してください。'); // 未入力時の警告メッセージ
                 return; // 以降の処理をキャンセルして関数を抜ける
@@ -328,6 +349,7 @@
             // 入力値をひとつの課題オブジェクトにまとめる
             var task = {
                 id:       String(Date.now()), // 登録時刻のミリ秒を文字列化した一意なID（削除・編集時の特定に使う）
+                subject:  subject,            // 授業名（空文字の場合はそのまま保存する）
                 name:     name,               // 課題名
                 deadline: deadline,           // 期限（YYYY-MM-DDTHH:MM形式のまま保存）
                 method:   method              // 提出方法
@@ -348,6 +370,7 @@
             renderTask(task); // 追加した課題を画面のリストに即時表示する
 
             // 登録後、入力欄をリセットして次の入力を準備する
+            document.getElementById('taskSubject').value     = '';  // 授業名の入力欄をクリアする
             document.getElementById('taskName').value        = '';  // 課題名の入力欄をクリアする
             document.getElementById('taskDeadline').value    = '';  // 期限の入力欄をクリアする
             document.getElementById('taskMethod').selectedIndex = 0; // 提出方法を先頭の選択肢に戻す
@@ -376,9 +399,10 @@
             }
 
             // フォームの各入力欄に課題データを読み込む
-            document.getElementById('taskName').value     = task.name;     // 課題名をセットする
-            document.getElementById('taskDeadline').value = task.deadline; // 期限をセットする（YYYY-MM-DDTHH:MM形式）
-            document.getElementById('taskMethod').value   = task.method;   // 提出方法をセットする
+            document.getElementById('taskSubject').value  = task.subject || ''; // 授業名をセットする（未定義の古いデータは空文字にする）
+            document.getElementById('taskName').value     = task.name;          // 課題名をセットする
+            document.getElementById('taskDeadline').value = task.deadline;      // 期限をセットする（YYYY-MM-DDTHH:MM形式）
+            document.getElementById('taskMethod').value   = task.method;        // 提出方法をセットする
 
             // 現在編集中の課題IDをグローバル変数に記録する（updateTask()で使う）
             editingId = id;
@@ -399,11 +423,12 @@
         // -----------------------------------------------------------------
         function updateTask() {
             // 各入力欄の現在値を取得し、前後の空白を除去する
-            var name     = document.getElementById('taskName').value.trim(); // 課題名
-            var deadline = document.getElementById('taskDeadline').value;    // 期限（YYYY-MM-DDTHH:MM形式）
-            var method   = document.getElementById('taskMethod').value;      // 提出方法
+            var subject  = document.getElementById('taskSubject').value.trim(); // 授業名（任意のため空白でも可）
+            var name     = document.getElementById('taskName').value.trim();    // 課題名
+            var deadline = document.getElementById('taskDeadline').value;       // 期限（YYYY-MM-DDTHH:MM形式）
+            var method   = document.getElementById('taskMethod').value;         // 提出方法
 
-            // 課題名が未入力の場合はアラートを出して処理を止める
+            // 課題名が未入力の場合はアラートを出して処理を止める（授業名は任意なのでチェックしない）
             if (name === '') {
                 alert('課題名を入力してください。'); // 未入力時の警告メッセージ
                 return; // 以降の処理をキャンセルして関数を抜ける
@@ -420,6 +445,7 @@
             var tasks = saved ? JSON.parse(saved) : [];      // JSON文字列を配列に変換する
             for (var i = 0; i < tasks.length; i++) {         // 全課題をループして編集対象を探す
                 if (tasks[i].id === editingId) {              // IDが一致した課題を見つけたら
+                    tasks[i].subject  = subject;              // 授業名を新しい値で上書きする
                     tasks[i].name     = name;                 // 課題名を新しい値で上書きする
                     tasks[i].deadline = deadline;             // 期限を新しい値で上書きする
                     tasks[i].method   = method;               // 提出方法を新しい値で上書きする
@@ -445,6 +471,7 @@
             }
 
             // フォームの入力欄をリセットして次の新規登録を準備する
+            document.getElementById('taskSubject').value     = '';  // 授業名の入力欄をクリアする
             document.getElementById('taskName').value        = '';  // 課題名の入力欄をクリアする
             document.getElementById('taskDeadline').value    = '';  // 期限の入力欄をクリアする
             document.getElementById('taskMethod').selectedIndex = 0; // 提出方法を先頭の選択肢に戻す
@@ -468,6 +495,7 @@
 
             // 削除対象が現在編集中の課題だった場合はフォームと編集状態をリセットする
             if (id === editingId) {                                        // 編集中のIDと一致するか確認する
+                document.getElementById('taskSubject').value    = '';     // 授業名の入力欄をクリアする
                 document.getElementById('taskName').value        = '';     // 課題名の入力欄をクリアする
                 document.getElementById('taskDeadline').value    = '';     // 期限の入力欄をクリアする
                 document.getElementById('taskMethod').selectedIndex = 0;   // 提出方法を先頭に戻す
