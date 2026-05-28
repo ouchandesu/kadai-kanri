@@ -37,9 +37,15 @@
             color: #333;             /* 文字色をやや濃いグレーに */
         }
 
+<<<<<<< HEAD
         /* テキスト入力・日付時刻入力・セレクトボックスの共通スタイル */
         input[type="text"],
         input[type="datetime-local"], /* datetime-localに変更（日付＋時刻を扱うため） */
+=======
+        /* テキスト入力・日付入力・セレクトボックスの共通スタイル */
+        input[type="text"],
+        input[type="date"],
+>>>>>>> cf8e1335670cbb94948dba2e339ec2e359c27890
         select {
             padding: 8px 10px;       /* 入力欄の内側の余白 */
             border: 1px solid #ccc;  /* 細いグレーの枠線 */
@@ -155,7 +161,11 @@
         <!-- 期限の入力グループ -->
         <div class="form-group">
             <label for="taskDeadline">期限</label> <!-- 期限ラベル -->
+<<<<<<< HEAD
             <input type="datetime-local" id="taskDeadline"> <!-- 日付と時刻を両方選択できるピッカー -->
+=======
+            <input type="date" id="taskDeadline"> <!-- 日付選択ピッカー -->
+>>>>>>> cf8e1335670cbb94948dba2e339ec2e359c27890
         </div>
 
         <!-- 提出方法の入力グループ -->
@@ -192,6 +202,7 @@
         // addTask() と loadTasks() の両方から呼ばれる共通ヘルパー関数
         // -----------------------------------------------------------------
         function renderTask(task) {
+<<<<<<< HEAD
             // 期限の文字列（YYYY-MM-DDTHH:MM）を日付と時刻に分解して日本語形式に変換する
             // 例："2026-05-27T23:59" → "2026年5月27日 23:59"
             var parts     = task.deadline.split('T');    // 'T'を境に日付部分と時刻部分に分割する
@@ -210,6 +221,14 @@
             }
             var minStr     = minutes < 10 ? '0' + minutes : String(minutes); // 分を必ず2桁にする（例：9 → "09"）
             var deadlineJP = year + '年' + month + '月' + day + '日 ' + hours + ':' + minStr; // 日本語形式に組み立てる
+=======
+            // 期限の文字列（YYYY-MM-DD）を日本語形式に変換する
+            var deadlineDate = new Date(task.deadline + 'T00:00:00'); // タイムゾーンずれを防ぐためT00:00:00を付加
+            var year  = deadlineDate.getFullYear();  // 年を取得
+            var month = deadlineDate.getMonth() + 1; // 月を取得（getMonthは0始まりのため+1）
+            var day   = deadlineDate.getDate();      // 日を取得
+            var deadlineJP = year + '年' + month + '月' + day + '日'; // 日本語形式の文字列に組み立てる
+>>>>>>> cf8e1335670cbb94948dba2e339ec2e359c27890
 
             var li = document.createElement('li'); // 新しい<li>要素を生成する
             li.dataset.id = task.id;               // 削除時に課題を特定できるよう、IDを<li>のdata属性に紐付ける
@@ -271,7 +290,11 @@
         function addTask() {
             // 各入力欄の値を取得し、前後の空白を除去する
             var name     = document.getElementById('taskName').value.trim(); // 課題名
+<<<<<<< HEAD
             var deadline = document.getElementById('taskDeadline').value;    // 期限（YYYY-MM-DDTHH:MM形式）
+=======
+            var deadline = document.getElementById('taskDeadline').value;    // 期限（YYYY-MM-DD形式）
+>>>>>>> cf8e1335670cbb94948dba2e339ec2e359c27890
             var method   = document.getElementById('taskMethod').value;      // 提出方法
 
             // 課題名が未入力の場合はアラートを出して処理を止める
@@ -290,7 +313,11 @@
             var task = {
                 id:       String(Date.now()), // 登録時刻のミリ秒を文字列化した一意なID（削除時の特定に使う）
                 name:     name,               // 課題名
+<<<<<<< HEAD
                 deadline: deadline,           // 期限（YYYY-MM-DDTHH:MM形式のまま保存）
+=======
+                deadline: deadline,           // 期限（YYYY-MM-DD形式のまま保存）
+>>>>>>> cf8e1335670cbb94948dba2e339ec2e359c27890
                 method:   method              // 提出方法
             };
 
