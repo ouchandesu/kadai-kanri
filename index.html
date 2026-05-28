@@ -37,15 +37,9 @@
             color: #333;             /* 文字色をやや濃いグレーに */
         }
 
-<<<<<<< HEAD
         /* テキスト入力・日付時刻入力・セレクトボックスの共通スタイル */
         input[type="text"],
-        input[type="datetime-local"], /* datetime-localに変更（日付＋時刻を扱うため） */
-=======
-        /* テキスト入力・日付入力・セレクトボックスの共通スタイル */
-        input[type="text"],
-        input[type="date"],
->>>>>>> cf8e1335670cbb94948dba2e339ec2e359c27890
+        input[type="datetime-local"], /* datetime-localで日付と時刻を両方選択できるようにする */
         select {
             padding: 8px 10px;       /* 入力欄の内側の余白 */
             border: 1px solid #ccc;  /* 細いグレーの枠線 */
@@ -55,7 +49,7 @@
             box-sizing: border-box;  /* paddingを含めて幅を計算 */
         }
 
-        /* 登録ボタンのスタイル */
+        /* 登録ボタン（および更新ボタン）の基本スタイル */
         button {
             padding: 10px 24px;      /* ボタン内側の余白 */
             background-color: #4a90e2; /* ボタンの背景色（青系） */
@@ -88,7 +82,7 @@
 
         /* 各課題アイテムのスタイル */
         #taskList li {
-            display: flex;                  /* 課題情報と削除ボタンを横並びにする */
+            display: flex;                  /* 課題情報とボタン群を横並びにする */
             justify-content: space-between; /* 情報を左端、ボタンを右端に配置する */
             align-items: flex-start;        /* 縦方向は上揃えにする */
             border-bottom: 1px solid #eee;  /* アイテム下に区切り線 */
@@ -103,10 +97,36 @@
 
         /* 課題情報（名前・期限・提出方法）をまとめるコンテナ */
         .task-info {
-            flex: 1; /* 削除ボタン以外の横幅をすべて使う */
+            flex: 1; /* ボタン群以外の横幅をすべて使う */
         }
 
-        /* 削除ボタンのスタイル（登録ボタンとは別の赤系カラーで危険操作を示す） */
+        /* 編集・削除ボタンをまとめるコンテナ */
+        .btn-group {
+            display: flex;           /* ボタンを横並びにする */
+            flex-direction: row;     /* 横方向に並べる */
+            align-items: flex-start; /* 縦方向は上揃えにする */
+            flex-shrink: 0;          /* ボタン群が縮まないようにする */
+            margin-left: 12px;       /* 課題情報との間に余白を取る */
+        }
+
+        /* 編集ボタンのスタイル（オレンジ系で編集操作を連想させる） */
+        .btn-edit {
+            padding: 6px 14px;           /* ボタン内側の余白 */
+            background-color: #f0a500;   /* オレンジ系の背景色で編集を連想させる */
+            color: #fff;                 /* ボタン文字を白に */
+            border: none;                /* 枠線をなくす */
+            border-radius: 4px;          /* 角を丸くする */
+            font-size: 0.85rem;          /* やや小さめの文字サイズ */
+            cursor: pointer;             /* カーソルをポインターにしてクリック可能と示す */
+            margin-right: 6px;           /* 削除ボタンとの間に余白を取る */
+        }
+
+        /* 編集ボタンにマウスを乗せたときの色変化 */
+        .btn-edit:hover {
+            background-color: #c8860a;   /* 少し濃いオレンジに変える */
+        }
+
+        /* 削除ボタンのスタイル（赤系カラーで危険操作を示す） */
         .btn-delete {
             padding: 6px 14px;           /* ボタン内側の余白 */
             background-color: #e05555;   /* 赤系の背景色で削除を連想させる */
@@ -115,9 +135,6 @@
             border-radius: 4px;          /* 角を丸くする */
             font-size: 0.85rem;          /* やや小さめの文字サイズ */
             cursor: pointer;             /* カーソルをポインターにしてクリック可能と示す */
-            margin-left: 12px;           /* 課題情報との間に余白を取る */
-            flex-shrink: 0;              /* 課題名が長くてもボタンのサイズが縮まないようにする */
-            align-self: flex-start;      /* ボタンを<li>の上端に揃える */
         }
 
         /* 削除ボタンにマウスを乗せたときの色変化 */
@@ -150,7 +167,7 @@
 
     <!-- ===== 入力フォームエリア ===== -->
     <div class="form-box"> <!-- フォームをボックスで囲む -->
-        <h2>課題を登録する</h2> <!-- フォームのタイトル -->
+        <h2>課題を登録する</h2> <!-- フォームのタイトル（編集中は「更新する」に変わる） -->
 
         <!-- 課題名の入力グループ -->
         <div class="form-group">
@@ -161,11 +178,7 @@
         <!-- 期限の入力グループ -->
         <div class="form-group">
             <label for="taskDeadline">期限</label> <!-- 期限ラベル -->
-<<<<<<< HEAD
             <input type="datetime-local" id="taskDeadline"> <!-- 日付と時刻を両方選択できるピッカー -->
-=======
-            <input type="date" id="taskDeadline"> <!-- 日付選択ピッカー -->
->>>>>>> cf8e1335670cbb94948dba2e339ec2e359c27890
         </div>
 
         <!-- 提出方法の入力グループ -->
@@ -179,8 +192,8 @@
             </select>
         </div>
 
-        <!-- 登録ボタン。クリックでaddTask()関数を呼び出す -->
-        <button onclick="addTask()">登録する</button>
+        <!-- 登録ボタン。id付きにしてJSからテキストとonclickを切り替えられるようにする -->
+        <button id="submitBtn" onclick="addTask()">登録する</button>
     </div>
 
     <!-- ===== 課題一覧エリア ===== -->
@@ -192,24 +205,26 @@
         </ul>
     </div>
 
-    <!-- ===== JavaScript：課題の登録・表示・削除・localStorage保存／読込 ===== -->
+    <!-- ===== JavaScript：課題の登録・編集・削除・localStorage保存／読込 ===== -->
     <script>
         // localStorageへの保存に使うキー名を定数として定義（タイポ防止のため1か所にまとめる）
         var STORAGE_KEY = 'kadai_tasks'; // このキー名でブラウザに課題データが保存される
 
+        // 現在編集中の課題ID（nullのときは新規登録モード、IDがセットされているときは編集モード）
+        var editingId = null;
+
         // -----------------------------------------------------------------
-        // renderTask(task) : 課題オブジェクトを受け取り<li>を生成してリストに追加する
-        // addTask() と loadTasks() の両方から呼ばれる共通ヘルパー関数
+        // createTaskElement(task) : 課題オブジェクトを受け取り<li>要素を生成して返す
+        // renderTask() と updateTask() の両方から呼ばれる共通ヘルパー関数
         // -----------------------------------------------------------------
-        function renderTask(task) {
-<<<<<<< HEAD
+        function createTaskElement(task) {
             // 期限の文字列（YYYY-MM-DDTHH:MM）を日付と時刻に分解して日本語形式に変換する
             // 例："2026-05-27T23:59" → "2026年5月27日 23:59"
             var parts     = task.deadline.split('T');    // 'T'を境に日付部分と時刻部分に分割する
             var dateParts = parts[0].split('-');          // 日付部分を'-'で年・月・日に分割する
-            var year   = parseInt(dateParts[0], 10);     // 年を整数に変換する
-            var month  = parseInt(dateParts[1], 10);     // 月を整数に変換する（1始まりのためそのまま使う）
-            var day    = parseInt(dateParts[2], 10);     // 日を整数に変換する
+            var year      = parseInt(dateParts[0], 10);  // 年を整数に変換する
+            var month     = parseInt(dateParts[1], 10);  // 月を整数に変換する（1始まりのためそのまま使う）
+            var day       = parseInt(dateParts[2], 10);  // 日を整数に変換する
 
             // 時刻部分がない古いYYYY-MM-DD形式のデータにも対応できるようデフォルト値を用意する
             var hours   = 0;                              // 時のデフォルト値
@@ -221,29 +236,33 @@
             }
             var minStr     = minutes < 10 ? '0' + minutes : String(minutes); // 分を必ず2桁にする（例：9 → "09"）
             var deadlineJP = year + '年' + month + '月' + day + '日 ' + hours + ':' + minStr; // 日本語形式に組み立てる
-=======
-            // 期限の文字列（YYYY-MM-DD）を日本語形式に変換する
-            var deadlineDate = new Date(task.deadline + 'T00:00:00'); // タイムゾーンずれを防ぐためT00:00:00を付加
-            var year  = deadlineDate.getFullYear();  // 年を取得
-            var month = deadlineDate.getMonth() + 1; // 月を取得（getMonthは0始まりのため+1）
-            var day   = deadlineDate.getDate();      // 日を取得
-            var deadlineJP = year + '年' + month + '月' + day + '日'; // 日本語形式の文字列に組み立てる
->>>>>>> cf8e1335670cbb94948dba2e339ec2e359c27890
 
             var li = document.createElement('li'); // 新しい<li>要素を生成する
-            li.dataset.id = task.id;               // 削除時に課題を特定できるよう、IDを<li>のdata属性に紐付ける
+            li.dataset.id = task.id;               // 削除・編集時に課題を特定できるよう、IDを<li>のdata属性に紐付ける
 
             // <li>の中身をHTMLで組み立てる
-            // 左側：課題情報（名前・期限・提出方法）、右側：削除ボタン
+            // 左側：課題情報（名前・期限・提出方法）、右側：編集ボタン＋削除ボタン
             li.innerHTML =
                 '<div class="task-info">' +                                                        // 課題情報をまとめるコンテナ開始
                   '<span class="task-name">' + escapeHtml(task.name) + '</span>' +                // 課題名（XSS対策でエスケープ）
                   '<div class="task-detail">📅 期限：' + deadlineJP + '</div>' +                  // 期限を日本語表示
                   '<div class="task-detail">📬 提出方法：' + escapeHtml(task.method) + '</div>' + // 提出方法
                 '</div>' +                                                                         // 課題情報コンテナ終了
-                '<button class="btn-delete" onclick="deleteTask(this)">削除</button>';             // 削除ボタン（thisでボタン自身を渡す）
+                '<div class="btn-group">' +                                                        // ボタン群をまとめるコンテナ開始
+                  '<button class="btn-edit" onclick="startEdit(this)">編集</button>' +            // 編集ボタン（thisでボタン自身を渡す）
+                  '<button class="btn-delete" onclick="deleteTask(this)">削除</button>' +         // 削除ボタン（thisでボタン自身を渡す）
+                '</div>';                                                                          // ボタン群コンテナ終了
 
-            document.getElementById('taskList').appendChild(li); // 課題リストの末尾に<li>を追加する
+            return li; // 生成した<li>要素を返す（追加先は呼び出し元が決める）
+        }
+
+        // -----------------------------------------------------------------
+        // renderTask(task) : createTaskElement()で生成した<li>をリスト末尾に追加する
+        // addTask() と loadTasks() から呼ばれる
+        // -----------------------------------------------------------------
+        function renderTask(task) {
+            var li = createTaskElement(task);                      // 課題の<li>要素を生成する
+            document.getElementById('taskList').appendChild(li);   // 課題リストの末尾に<li>を追加する
         }
 
         // -----------------------------------------------------------------
@@ -286,15 +305,12 @@
 
         // -----------------------------------------------------------------
         // addTask() : フォームの入力値を検証し、localStorageへ保存してリストに追加する
+        // 「登録する」ボタンがクリックされたときに呼ばれる
         // -----------------------------------------------------------------
         function addTask() {
             // 各入力欄の値を取得し、前後の空白を除去する
             var name     = document.getElementById('taskName').value.trim(); // 課題名
-<<<<<<< HEAD
             var deadline = document.getElementById('taskDeadline').value;    // 期限（YYYY-MM-DDTHH:MM形式）
-=======
-            var deadline = document.getElementById('taskDeadline').value;    // 期限（YYYY-MM-DD形式）
->>>>>>> cf8e1335670cbb94948dba2e339ec2e359c27890
             var method   = document.getElementById('taskMethod').value;      // 提出方法
 
             // 課題名が未入力の場合はアラートを出して処理を止める
@@ -311,13 +327,9 @@
 
             // 入力値をひとつの課題オブジェクトにまとめる
             var task = {
-                id:       String(Date.now()), // 登録時刻のミリ秒を文字列化した一意なID（削除時の特定に使う）
+                id:       String(Date.now()), // 登録時刻のミリ秒を文字列化した一意なID（削除・編集時の特定に使う）
                 name:     name,               // 課題名
-<<<<<<< HEAD
                 deadline: deadline,           // 期限（YYYY-MM-DDTHH:MM形式のまま保存）
-=======
-                deadline: deadline,           // 期限（YYYY-MM-DD形式のまま保存）
->>>>>>> cf8e1335670cbb94948dba2e339ec2e359c27890
                 method:   method              // 提出方法
             };
 
@@ -342,12 +354,128 @@
         }
 
         // -----------------------------------------------------------------
+        // startEdit(btn) : 編集ボタンが押されたとき、課題データをフォームに読み込む
+        // btn: クリックされた編集ボタン要素（onclick="startEdit(this)"で渡される）
+        // -----------------------------------------------------------------
+        function startEdit(btn) {
+            var li = btn.closest('li');  // ボタンの祖先をたどって親の<li>要素を取得する
+            var id = li.dataset.id;      // <li>のdata属性に紐付けたIDを取得する（編集対象を特定するため）
+
+            // localStorageから対象IDに一致する課題オブジェクトを検索する
+            var saved = localStorage.getItem(STORAGE_KEY); // 保存データをJSON文字列で取得する
+            var tasks = saved ? JSON.parse(saved) : [];    // JSON文字列を配列に変換する
+            var task  = null;                              // 見つかった課題を格納する変数
+            for (var i = 0; i < tasks.length; i++) {       // 全課題をループして対象を探す
+                if (tasks[i].id === id) {                  // IDが一致した課題を見つけたら
+                    task = tasks[i];                       // 変数に代入する
+                    break;                                 // ループを終了する
+                }
+            }
+            if (!task) { // 課題が見つからなかった場合（通常は起こらない）
+                return;  // 何もせずに終了する
+            }
+
+            // フォームの各入力欄に課題データを読み込む
+            document.getElementById('taskName').value     = task.name;     // 課題名をセットする
+            document.getElementById('taskDeadline').value = task.deadline; // 期限をセットする（YYYY-MM-DDTHH:MM形式）
+            document.getElementById('taskMethod').value   = task.method;   // 提出方法をセットする
+
+            // 現在編集中の課題IDをグローバル変数に記録する（updateTask()で使う）
+            editingId = id;
+
+            // 「登録する」ボタンを「更新する」ボタンに切り替える
+            var submitBtn       = document.getElementById('submitBtn'); // ボタン要素を取得する
+            submitBtn.textContent = '更新する';                          // ボタンのテキストを変更する
+            submitBtn.onclick     = updateTask;                         // クリック時の関数をupdateTaskに切り替える
+
+            // フォームの先頭にスクロールしてカーソルを置く（ユーザーが気づきやすくする）
+            document.querySelector('.form-box').scrollIntoView({ behavior: 'smooth' }); // フォームエリアまでスクロールする
+            document.getElementById('taskName').focus();                                 // 課題名の入力欄にフォーカスを移す
+        }
+
+        // -----------------------------------------------------------------
+        // updateTask() : 編集内容でlocalStorageとDOMのリスト表示を更新する
+        // 「更新する」ボタンがクリックされたときに呼ばれる
+        // -----------------------------------------------------------------
+        function updateTask() {
+            // 各入力欄の現在値を取得し、前後の空白を除去する
+            var name     = document.getElementById('taskName').value.trim(); // 課題名
+            var deadline = document.getElementById('taskDeadline').value;    // 期限（YYYY-MM-DDTHH:MM形式）
+            var method   = document.getElementById('taskMethod').value;      // 提出方法
+
+            // 課題名が未入力の場合はアラートを出して処理を止める
+            if (name === '') {
+                alert('課題名を入力してください。'); // 未入力時の警告メッセージ
+                return; // 以降の処理をキャンセルして関数を抜ける
+            }
+
+            // 期限が未入力の場合もアラートを出して処理を止める
+            if (deadline === '') {
+                alert('期限を選択してください。'); // 未入力時の警告メッセージ
+                return; // 以降の処理をキャンセルして関数を抜ける
+            }
+
+            // --- localStorageの更新処理 ---
+            var saved = localStorage.getItem(STORAGE_KEY);  // 保存データをJSON文字列で取得する
+            var tasks = saved ? JSON.parse(saved) : [];      // JSON文字列を配列に変換する
+            for (var i = 0; i < tasks.length; i++) {         // 全課題をループして編集対象を探す
+                if (tasks[i].id === editingId) {              // IDが一致した課題を見つけたら
+                    tasks[i].name     = name;                 // 課題名を新しい値で上書きする
+                    tasks[i].deadline = deadline;             // 期限を新しい値で上書きする
+                    tasks[i].method   = method;               // 提出方法を新しい値で上書きする
+                    break;                                    // 更新完了したのでループを終了する
+                }
+            }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); // 更新した配列をlocalStorageへ書き込む
+
+            // --- DOMのリスト表示を更新する処理 ---
+            // 対象の<li>要素を検索してselector（data-id属性）で取得する
+            var oldLi = document.querySelector('#taskList li[data-id="' + editingId + '"]');
+            if (oldLi) { // 対象の<li>が見つかった場合
+                // 更新後の課題オブジェクトを使って新しい<li>要素を生成する
+                var updatedTask = null;                        // 更新後の課題オブジェクトを格納する変数
+                for (var j = 0; j < tasks.length; j++) {      // 全課題をループして更新対象を探す
+                    if (tasks[j].id === editingId) {           // IDが一致した課題を見つけたら
+                        updatedTask = tasks[j];                // 変数に代入する
+                        break;                                 // ループを終了する
+                    }
+                }
+                var newLi = createTaskElement(updatedTask); // 新しい<li>要素を生成する
+                oldLi.replaceWith(newLi);                   // 古い<li>をその場で新しい<li>に差し替える（位置は変わらない）
+            }
+
+            // フォームの入力欄をリセットして次の新規登録を準備する
+            document.getElementById('taskName').value        = '';  // 課題名の入力欄をクリアする
+            document.getElementById('taskDeadline').value    = '';  // 期限の入力欄をクリアする
+            document.getElementById('taskMethod').selectedIndex = 0; // 提出方法を先頭の選択肢に戻す
+
+            // 「更新する」ボタンを「登録する」ボタンに戻す
+            var submitBtn       = document.getElementById('submitBtn'); // ボタン要素を取得する
+            submitBtn.textContent = '登録する';                          // ボタンのテキストを元に戻す
+            submitBtn.onclick     = addTask;                            // クリック時の関数をaddTaskに戻す
+
+            // 編集モードを終了してグローバル変数をリセットする
+            editingId = null; // nullに戻すことで次の操作が新規登録モードになる
+        }
+
+        // -----------------------------------------------------------------
         // deleteTask(btn) : 削除ボタンが押されたとき、課題をDOMとlocalStorageから削除する
         // btn: クリックされた削除ボタン要素（onclick="deleteTask(this)"で渡される）
         // -----------------------------------------------------------------
         function deleteTask(btn) {
-            var li = btn.parentElement; // クリックされたボタンの親要素（<li>）を取得する
+            var li = btn.closest('li'); // ボタンの祖先をたどって親の<li>要素を取得する
             var id = li.dataset.id;     // <li>のdata属性に紐付けたIDを取得する（削除対象を特定するため）
+
+            // 削除対象が現在編集中の課題だった場合はフォームと編集状態をリセットする
+            if (id === editingId) {                                        // 編集中のIDと一致するか確認する
+                document.getElementById('taskName').value        = '';     // 課題名の入力欄をクリアする
+                document.getElementById('taskDeadline').value    = '';     // 期限の入力欄をクリアする
+                document.getElementById('taskMethod').selectedIndex = 0;   // 提出方法を先頭に戻す
+                var submitBtn       = document.getElementById('submitBtn'); // ボタン要素を取得する
+                submitBtn.textContent = '登録する';                          // ボタンのテキストを元に戻す
+                submitBtn.onclick     = addTask;                            // クリック時の関数をaddTaskに戻す
+                editingId = null;                                           // 編集モードを終了する
+            }
 
             // localStorageから対象IDに一致する課題を除いた新しい配列を作成する
             var saved    = localStorage.getItem(STORAGE_KEY); // 保存データをJSON文字列で取得する
