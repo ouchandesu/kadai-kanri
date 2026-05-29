@@ -37,9 +37,12 @@
             color: #333;             /* 文字色をやや濃いグレーに */
         }
 
-        /* テキスト入力・日付時刻入力・セレクトボックスの共通スタイル */
+        /* テキスト入力・日付入力・時刻入力・セレクトボックスの共通スタイル
+           datetime-local はiOS Safariで正しく動作しないため
+           type="date" と type="time" に分割して使う */
         input[type="text"],
-        input[type="datetime-local"], /* datetime-localで日付と時刻を両方選択できるようにする */
+        input[type="date"],  /* 日付ピッカー（iOS/Android/PCで確実に動作する） */
+        input[type="time"],  /* 時刻ピッカー（iOS/Android/PCで確実に動作する） */
         select {
             padding: 8px 10px;       /* 入力欄の内側の余白 */
             border: 1px solid #ccc;  /* 細いグレーの枠線 */
@@ -47,6 +50,25 @@
             font-size: 1rem;         /* 文字サイズを標準に */
             width: 100%;             /* 横幅いっぱいに広げる */
             box-sizing: border-box;  /* paddingを含めて幅を計算 */
+        }
+
+        /* 期限フォームの日付欄と時刻欄を横並びにするコンテナ */
+        .deadline-group {
+            display: flex; /* 日付欄と時刻欄を横並びにする */
+            gap: 8px;      /* 入力欄どうしの間に余白を入れる */
+        }
+
+        /* .deadline-group内の入力欄はflexで幅を制御するため
+           共通スタイルのwidth:100%をwidth:autoで上書きする */
+        .deadline-group input {
+            width: auto;   /* 共通スタイルのwidth:100%をリセットしてflexに幅を任せる */
+            flex: 1;       /* 余白を均等に分け合う（個別のflex値で上書き可能） */
+            min-width: 0;  /* flexアイテムがコンテナ幅を超えないようにする */
+        }
+
+        /* 日付欄は時刻欄より文字数が多いため広めに確保する（例：2026/05/27 vs 23:59） */
+        .deadline-group input[type="date"] {
+            flex: 2; /* 日付欄：時刻欄 ＝ 2：1 の比率で横幅を分割する */
         }
 
         /* 登録ボタン（および更新ボタン）の基本スタイル */
@@ -205,10 +227,22 @@
                iOSは入力欄のフォントが16px未満だとタップ時に画面を自動ズームするため
                明示的に16pxを指定してズームを防ぐ */
             input[type="text"],
-            input[type="datetime-local"],
+            input[type="date"],  /* 日付入力欄（datetime-localの代替） */
+            input[type="time"],  /* 時刻入力欄（datetime-localの代替） */
             select {
                 font-size: 16px;    /* iOSの自動ズームを防ぐために必要な最低フォントサイズ */
                 padding: 10px 12px; /* タップ時に指が当たりやすいよう縦paddingを拡大する */
+            }
+
+            /* スマホでは日付欄と時刻欄を縦並びに切り替えて横幅を最大限活用する */
+            .deadline-group {
+                flex-direction: column; /* 横並び→縦並びに切り替える */
+            }
+
+            /* 縦並び時は各入力欄を横幅いっぱいに広げる */
+            .deadline-group input {
+                width: 100%; /* 縦並びなので全幅に広げる */
+                flex: none;  /* flex比率を無効にしてwidth:100%で幅を決める */
             }
 
             /* 登録・更新ボタンを横幅いっぱいに広げてどこでもタップしやすくする */
@@ -288,9 +322,14 @@
         </div>
 
         <!-- 期限の入力グループ -->
+        <!-- datetime-local はiOS Safariで表示不具合があるため
+             type="date"（日付）と type="time"（時刻）の2つに分けて代替する -->
         <div class="form-group">
-            <label for="taskDeadline">期限</label> <!-- 期限ラベル -->
-            <input type="datetime-local" id="taskDeadline"> <!-- 日付と時刻を両方選択できるピッカー -->
+            <label>期限 <span style="font-weight:normal; color:#999; font-size:0.85rem;">（時刻は任意）</span></label> <!-- for属性はinputが2つのため省略する -->
+            <div class="deadline-group"> <!-- 日付欄と時刻欄を横並びにするコンテナ（スマホでは縦並び） -->
+                <input type="date" id="taskDeadlineDate"> <!-- 日付選択ピッカー（iOS/Android/PCで確実に動作する） -->
+                <input type="time" id="taskDeadlineTime"> <!-- 時刻選択ピッカー（未入力時は00:00として保存する） -->
+            </div>
         </div>
 
         <!-- 提出方法の入力グループ -->
@@ -430,10 +469,13 @@
         // -----------------------------------------------------------------
         function addTask() {
             // 各入力欄の値を取得し、前後の空白を除去する
-            var subject  = document.getElementById('taskSubject').value.trim(); // 授業名（任意のため空白でも可）
-            var name     = document.getElementById('taskName').value.trim();    // 課題名
-            var deadline = document.getElementById('taskDeadline').value;       // 期限（YYYY-MM-DDTHH:MM形式）
-            var method   = document.getElementById('taskMethod').value;         // 提出方法
+            var subject      = document.getElementById('taskSubject').value.trim();  // 授業名（任意のため空白でも可）
+            var name         = document.getElementById('taskName').value.trim();     // 課題名
+            var deadlineDate = document.getElementById('taskDeadlineDate').value;    // 期限の日付部分（YYYY-MM-DD形式）
+            var deadlineTime = document.getElementById('taskDeadlineTime').value;    // 期限の時刻部分（HH:MM形式、未入力可）
+            // 日付と時刻を'T'で結合してYYYY-MM-DDTHH:MM形式にまとめる（時刻未入力は00:00で補完）
+            var deadline     = deadlineDate + 'T' + (deadlineTime || '00:00');
+            var method       = document.getElementById('taskMethod').value;          // 提出方法
 
             // 課題名が未入力の場合はアラートを出して処理を止める（授業名は任意なのでチェックしない）
             if (name === '') {
@@ -441,9 +483,9 @@
                 return; // 以降の処理をキャンセルして関数を抜ける
             }
 
-            // 期限が未入力の場合もアラートを出して処理を止める
-            if (deadline === '') {
-                alert('期限を選択してください。'); // 未入力時の警告メッセージ
+            // 期限の日付が未入力の場合はアラートを出して処理を止める（時刻は任意のため省略可）
+            if (deadlineDate === '') {
+                alert('期限の日付を選択してください。'); // 未入力時の警告メッセージ
                 return; // 以降の処理をキャンセルして関数を抜ける
             }
 
@@ -471,10 +513,11 @@
             renderTask(task); // 追加した課題を画面のリストに即時表示する
 
             // 登録後、入力欄をリセットして次の入力を準備する
-            document.getElementById('taskSubject').value     = '';  // 授業名の入力欄をクリアする
-            document.getElementById('taskName').value        = '';  // 課題名の入力欄をクリアする
-            document.getElementById('taskDeadline').value    = '';  // 期限の入力欄をクリアする
-            document.getElementById('taskMethod').selectedIndex = 0; // 提出方法を先頭の選択肢に戻す
+            document.getElementById('taskSubject').value        = '';  // 授業名の入力欄をクリアする
+            document.getElementById('taskName').value           = '';  // 課題名の入力欄をクリアする
+            document.getElementById('taskDeadlineDate').value   = '';  // 期限の日付入力欄をクリアする
+            document.getElementById('taskDeadlineTime').value   = '';  // 期限の時刻入力欄をクリアする
+            document.getElementById('taskMethod').selectedIndex = 0;   // 提出方法を先頭の選択肢に戻す
         }
 
         // -----------------------------------------------------------------
@@ -499,11 +542,17 @@
                 return;  // 何もせずに終了する
             }
 
+            // 保存済みの期限文字列（YYYY-MM-DDTHH:MM）を'T'で分割して日付と時刻を取り出す
+            var dlParts  = task.deadline ? task.deadline.split('T') : ['', '']; // 'T'がない場合は空文字を2つ用意する
+            var dlDate   = dlParts[0] || ''; // 日付部分（例："2026-05-27"）、存在しない場合は空文字
+            var dlTime   = dlParts[1] || ''; // 時刻部分（例："23:59"）、存在しない場合は空文字
+
             // フォームの各入力欄に課題データを読み込む
-            document.getElementById('taskSubject').value  = task.subject || ''; // 授業名をセットする（未定義の古いデータは空文字にする）
-            document.getElementById('taskName').value     = task.name;          // 課題名をセットする
-            document.getElementById('taskDeadline').value = task.deadline;      // 期限をセットする（YYYY-MM-DDTHH:MM形式）
-            document.getElementById('taskMethod').value   = task.method;        // 提出方法をセットする
+            document.getElementById('taskSubject').value      = task.subject || ''; // 授業名をセットする（古いデータにはsubjectがないため||''で補完）
+            document.getElementById('taskName').value         = task.name;          // 課題名をセットする
+            document.getElementById('taskDeadlineDate').value = dlDate;             // 期限の日付部分をセットする
+            document.getElementById('taskDeadlineTime').value = dlTime;             // 期限の時刻部分をセットする
+            document.getElementById('taskMethod').value       = task.method;        // 提出方法をセットする
 
             // 現在編集中の課題IDをグローバル変数に記録する（updateTask()で使う）
             editingId = id;
@@ -524,10 +573,13 @@
         // -----------------------------------------------------------------
         function updateTask() {
             // 各入力欄の現在値を取得し、前後の空白を除去する
-            var subject  = document.getElementById('taskSubject').value.trim(); // 授業名（任意のため空白でも可）
-            var name     = document.getElementById('taskName').value.trim();    // 課題名
-            var deadline = document.getElementById('taskDeadline').value;       // 期限（YYYY-MM-DDTHH:MM形式）
-            var method   = document.getElementById('taskMethod').value;         // 提出方法
+            var subject      = document.getElementById('taskSubject').value.trim();  // 授業名（任意のため空白でも可）
+            var name         = document.getElementById('taskName').value.trim();     // 課題名
+            var deadlineDate = document.getElementById('taskDeadlineDate').value;    // 期限の日付部分（YYYY-MM-DD形式）
+            var deadlineTime = document.getElementById('taskDeadlineTime').value;    // 期限の時刻部分（HH:MM形式、未入力可）
+            // 日付と時刻を'T'で結合してYYYY-MM-DDTHH:MM形式にまとめる（時刻未入力は00:00で補完）
+            var deadline     = deadlineDate + 'T' + (deadlineTime || '00:00');
+            var method       = document.getElementById('taskMethod').value;          // 提出方法
 
             // 課題名が未入力の場合はアラートを出して処理を止める（授業名は任意なのでチェックしない）
             if (name === '') {
@@ -535,9 +587,9 @@
                 return; // 以降の処理をキャンセルして関数を抜ける
             }
 
-            // 期限が未入力の場合もアラートを出して処理を止める
-            if (deadline === '') {
-                alert('期限を選択してください。'); // 未入力時の警告メッセージ
+            // 期限の日付が未入力の場合はアラートを出して処理を止める（時刻は任意のため省略可）
+            if (deadlineDate === '') {
+                alert('期限の日付を選択してください。'); // 未入力時の警告メッセージ
                 return; // 以降の処理をキャンセルして関数を抜ける
             }
 
@@ -572,10 +624,11 @@
             }
 
             // フォームの入力欄をリセットして次の新規登録を準備する
-            document.getElementById('taskSubject').value     = '';  // 授業名の入力欄をクリアする
-            document.getElementById('taskName').value        = '';  // 課題名の入力欄をクリアする
-            document.getElementById('taskDeadline').value    = '';  // 期限の入力欄をクリアする
-            document.getElementById('taskMethod').selectedIndex = 0; // 提出方法を先頭の選択肢に戻す
+            document.getElementById('taskSubject').value        = '';  // 授業名の入力欄をクリアする
+            document.getElementById('taskName').value           = '';  // 課題名の入力欄をクリアする
+            document.getElementById('taskDeadlineDate').value   = '';  // 期限の日付入力欄をクリアする
+            document.getElementById('taskDeadlineTime').value   = '';  // 期限の時刻入力欄をクリアする
+            document.getElementById('taskMethod').selectedIndex = 0;   // 提出方法を先頭の選択肢に戻す
 
             // 「更新する」ボタンを「登録する」ボタンに戻す
             var submitBtn       = document.getElementById('submitBtn'); // ボタン要素を取得する
@@ -596,10 +649,11 @@
 
             // 削除対象が現在編集中の課題だった場合はフォームと編集状態をリセットする
             if (id === editingId) {                                        // 編集中のIDと一致するか確認する
-                document.getElementById('taskSubject').value    = '';     // 授業名の入力欄をクリアする
-                document.getElementById('taskName').value        = '';     // 課題名の入力欄をクリアする
-                document.getElementById('taskDeadline').value    = '';     // 期限の入力欄をクリアする
-                document.getElementById('taskMethod').selectedIndex = 0;   // 提出方法を先頭に戻す
+                document.getElementById('taskSubject').value        = '';     // 授業名の入力欄をクリアする
+                document.getElementById('taskName').value           = '';     // 課題名の入力欄をクリアする
+                document.getElementById('taskDeadlineDate').value   = '';     // 期限の日付入力欄をクリアする
+                document.getElementById('taskDeadlineTime').value   = '';     // 期限の時刻入力欄をクリアする
+                document.getElementById('taskMethod').selectedIndex = 0;     // 提出方法を先頭に戻す
                 var submitBtn       = document.getElementById('submitBtn'); // ボタン要素を取得する
                 submitBtn.textContent = '登録する';                          // ボタンのテキストを元に戻す
                 submitBtn.onclick     = addTask;                            // クリック時の関数をaddTaskに戻す
