@@ -644,6 +644,12 @@
         // btn: クリックされた削除ボタン要素（onclick="deleteTask(this)"で渡される）
         // -----------------------------------------------------------------
         function deleteTask(btn) {
+            // 削除前に確認ダイアログを表示する
+            // confirm()はOKがtrueを、キャンセルがfalseを返す
+            if (!confirm('本当に削除しますか？')) { // キャンセルが押された場合
+                return; // 何もせずに関数を終了して削除をキャンセルする
+            }
+
             var li = btn.closest('li'); // ボタンの祖先をたどって親の<li>要素を取得する
             var id = li.dataset.id;     // <li>のdata属性に紐付けたIDを取得する（削除対象を特定するため）
 
