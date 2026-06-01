@@ -165,6 +165,32 @@
             background-color: #c03030;   /* 少し濃い赤に変える */
         }
 
+        /* 完了ボタンのスタイル（緑系で達成感を演出する） */
+        .btn-done {
+            padding: 6px 14px;           /* ボタン内側の余白 */
+            background-color: #4caf50;   /* 緑系の背景色で「完了」を連想させる */
+            color: #fff;                 /* ボタン文字を白に */
+            border: none;                /* 枠線をなくす */
+            border-radius: 4px;          /* 角を丸くする */
+            font-size: 0.85rem;          /* やや小さめの文字サイズ */
+            cursor: pointer;             /* カーソルをポインターにしてクリック可能と示す */
+            margin-right: 6px;           /* 隣のボタンとの間に余白を取る */
+            touch-action: manipulation;  /* タップ時の300ms遅延を除去する */
+        }
+
+        /* 未完了ボタンのスタイル（グレー系で「元に戻す」ことを示す） */
+        .btn-undone {
+            padding: 6px 14px;           /* ボタン内側の余白 */
+            background-color: #9e9e9e;   /* グレー系の背景色で完了取り消しを示す */
+            color: #fff;                 /* ボタン文字を白に */
+            border: none;                /* 枠線をなくす */
+            border-radius: 4px;          /* 角を丸くする */
+            font-size: 0.85rem;          /* やや小さめの文字サイズ */
+            cursor: pointer;             /* カーソルをポインターにしてクリック可能と示す */
+            margin-right: 6px;           /* 隣のボタンとの間に余白を取る */
+            touch-action: manipulation;  /* タップ時の300ms遅延を除去する */
+        }
+
         /* 授業名を小さめに表示するスタイル（課題名の上に置く補足情報） */
         .task-subject {
             font-size: 0.8rem;       /* 課題名より小さいフォントサイズにする */
@@ -177,6 +203,20 @@
             font-size: 1.1rem;       /* 課題名をやや大きく */
             font-weight: bold;       /* 太字にする */
             color: #222;             /* 濃い文字色 */
+        }
+
+        /* 完了済みアイテム全体のスタイル（<li>に付与するクラス） */
+        #taskList li.task-completed {
+            background-color: #efefef; /* 背景をグレーにして完了済みと一目でわかるようにする */
+            border-radius: 4px;        /* 背景色が付いたので角を少し丸くする */
+            padding-left: 8px;         /* 背景色の内側に余白を追加する */
+            padding-right: 8px;        /* 背景色の内側に余白を追加する */
+        }
+
+        /* 完了済みアイテムの課題名に取り消し線を入れて完了感を出す */
+        #taskList li.task-completed .task-name {
+            text-decoration: line-through; /* 取り消し線を入れる */
+            color: #999;                   /* 文字色を薄くして完了済みと区別する */
         }
 
         /* 期限・提出方法などのサブ情報のスタイル */
@@ -282,6 +322,24 @@
                 min-height: 44px;   /* タッチターゲットの最小高さ（Appleガイドライン：44px） */
                 font-size: 0.95rem; /* 読みやすいサイズに調整する */
             }
+
+            /* 完了ボタンもタッチしやすいサイズに拡大する */
+            .btn-done {
+                flex: 1;            /* .btn-group内の横幅を均等に分ける */
+                padding: 11px 0;    /* 縦paddingを増やして44px以上のタッチ領域を確保する */
+                text-align: center; /* ボタンのテキストを中央に揃える */
+                min-height: 44px;   /* タッチターゲットの最小高さ（Appleガイドライン：44px） */
+                font-size: 0.95rem; /* 読みやすいサイズに調整する */
+            }
+
+            /* 未完了ボタンも同様にタッチしやすいサイズに拡大する */
+            .btn-undone {
+                flex: 1;            /* .btn-group内の横幅を均等に分ける */
+                padding: 11px 0;    /* 縦paddingを増やして44px以上のタッチ領域を確保する */
+                text-align: center; /* ボタンのテキストを中央に揃える */
+                min-height: 44px;   /* タッチターゲットの最小高さ（Appleガイドライン：44px） */
+                font-size: 0.95rem; /* 読みやすいサイズに調整する */
+            }
         }
 
         /* =======================================================
@@ -299,6 +357,12 @@
             }
             .btn-delete:hover {
                 background-color: #c03030; /* 削除ボタンのホバー色（少し濃い赤） */
+            }
+            .btn-done:hover {
+                background-color: #388e3c; /* 完了ボタンのホバー色（少し濃い緑） */
+            }
+            .btn-undone:hover {
+                background-color: #757575; /* 未完了ボタンのホバー色（少し濃いグレー） */
             }
         }
     </style>
@@ -399,8 +463,19 @@
                 ? '<div class="task-subject">🏫 ' + escapeHtml(task.subject) + '</div>' // 授業名を表示するHTML（XSS対策でエスケープ）
                 : '';                                                                    // 授業名がなければ空文字列にして行を出さない
 
+            // 完了状態（task.done）に応じてボタンのクラスとテキストを切り替える
+            // 古いデータで done フィールドが存在しない場合は未完了（false）として扱う
+            var isDone    = !!task.done;                               // undefinedや0もfalseに統一する
+            var doneClass = isDone ? 'btn-undone' : 'btn-done';       // 完了済みなら「未完了」ボタン、未完了なら「完了」ボタン
+            var doneLabel = isDone ? '未完了' : '完了';                 // ボタンに表示するテキスト
+
+            // 完了済みの場合は<li>に task-completed クラスを付与する（CSSで背景色・取り消し線を適用）
+            if (isDone) {
+                li.classList.add('task-completed'); // グレー背景と取り消し線を有効にする
+            }
+
             // <li>の中身をHTMLで組み立てる
-            // 左側：課題情報（授業名・課題名・期限・提出方法）、右側：編集ボタン＋削除ボタン
+            // 左側：課題情報（授業名・課題名・期限・提出方法）、右側：完了・編集・削除ボタン
             li.innerHTML =
                 '<div class="task-info">' +                                                        // 課題情報をまとめるコンテナ開始
                   subjectHtml +                                                                    // 授業名（入力されている場合のみ表示）
@@ -409,6 +484,7 @@
                   '<div class="task-detail">📬 提出方法：' + escapeHtml(task.method) + '</div>' + // 提出方法
                 '</div>' +                                                                         // 課題情報コンテナ終了
                 '<div class="btn-group">' +                                                        // ボタン群をまとめるコンテナ開始
+                  '<button class="' + doneClass + '" onclick="toggleDone(this)">' + doneLabel + '</button>' + // 完了／未完了ボタン（thisでボタン自身を渡す）
                   '<button class="btn-edit" onclick="startEdit(this)">編集</button>' +            // 編集ボタン（thisでボタン自身を渡す）
                   '<button class="btn-delete" onclick="deleteTask(this)">削除</button>' +         // 削除ボタン（thisでボタン自身を渡す）
                 '</div>';                                                                          // ボタン群コンテナ終了
@@ -495,7 +571,8 @@
                 subject:  subject,            // 授業名（空文字の場合はそのまま保存する）
                 name:     name,               // 課題名
                 deadline: deadline,           // 期限（YYYY-MM-DDTHH:MM形式のまま保存）
-                method:   method              // 提出方法
+                method:   method,             // 提出方法
+                done:     false               // 完了状態（新規登録時は必ず未完了にする）
             };
 
             // --- localStorageへの保存処理 ---
@@ -637,6 +714,39 @@
 
             // 編集モードを終了してグローバル変数をリセットする
             editingId = null; // nullに戻すことで次の操作が新規登録モードになる
+        }
+
+        // -----------------------------------------------------------------
+        // toggleDone(btn) : 完了／未完了ボタンが押されたとき、完了状態を切り替える
+        // btn: クリックされたボタン要素（onclick="toggleDone(this)"で渡される）
+        // -----------------------------------------------------------------
+        function toggleDone(btn) {
+            var li = btn.closest('li'); // ボタンの祖先をたどって親の<li>要素を取得する
+            var id = li.dataset.id;     // <li>のdata属性に紐付けたIDを取得する（更新対象を特定するため）
+
+            // localStorageの該当課題の done フィールドを反転する
+            var saved = localStorage.getItem(STORAGE_KEY); // 保存データをJSON文字列で取得する
+            var tasks = saved ? JSON.parse(saved) : [];    // JSON文字列を配列に変換する
+            for (var i = 0; i < tasks.length; i++) {       // 全課題をループして対象を探す
+                if (tasks[i].id === id) {                  // IDが一致した課題を見つけたら
+                    tasks[i].done = !tasks[i].done;        // trueならfalse、falseならtrueに反転する
+                    break;                                 // 更新完了したのでループを終了する
+                }
+            }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); // 更新した配列をlocalStorageへ書き込む
+
+            // DOMを更新して見た目に完了状態を反映する
+            // classList.toggle()はクラスを追加した場合にtrueを返す（＝完了になった）
+            var nowDone = li.classList.toggle('task-completed'); // グレー背景・取り消し線のクラスを切り替える
+            if (nowDone) {
+                // 未完了→完了 の切り替え
+                btn.textContent = '未完了';      // ボタンのテキストを「未完了」に変更する
+                btn.className   = 'btn-undone'; // ボタンのクラスをグレー系に切り替える
+            } else {
+                // 完了→未完了 の切り替え
+                btn.textContent = '完了';        // ボタンのテキストを「完了」に戻す
+                btn.className   = 'btn-done';   // ボタンのクラスを緑系に戻す
+            }
         }
 
         // -----------------------------------------------------------------
