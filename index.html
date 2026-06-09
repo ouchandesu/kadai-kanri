@@ -650,9 +650,192 @@
                 padding: 1px 2px;   /* 余白を縮小する */
             }
         }
+
+        /* ===================================================================
+           設定ボタン（ページ右上）
+           =================================================================== */
+
+        /* 設定ボタンを右端に配置するヘッダーエリア */
+        .page-header {
+            display: flex;           /* フレックスボックスで横並びにする */
+            justify-content: flex-end; /* 設定ボタンを右端に寄せる */
+            margin-bottom: 12px;     /* 下のフォームボックスとの間に余白を取る */
+        }
+
+        /* 設定ボタン本体 */
+        .btn-settings {
+            padding: 8px 18px;           /* ボタン内側の余白 */
+            background-color: #666;      /* グレー系の背景色で機能ボタンと区別する */
+            color: #fff;                 /* 文字を白に */
+            border: none;                /* 枠線をなくす */
+            border-radius: 4px;          /* 角を丸くする */
+            font-size: 0.9rem;           /* 文字サイズ */
+            cursor: pointer;             /* カーソルをポインターにする */
+            touch-action: manipulation;  /* タップ遅延を除去する */
+        }
+
+        /* 設定ボタンのホバー色（PCのみ） */
+        @media (hover: hover) and (pointer: fine) {
+            .btn-settings:hover {
+                background-color: #444; /* 少し濃いグレーにする */
+            }
+        }
+
+        /* ===================================================================
+           設定モーダル
+           =================================================================== */
+
+        /* 設定モーダルの背景オーバーレイ */
+        .settings-overlay {
+            position: fixed;               /* 画面全体に固定表示する */
+            top: 0; left: 0;               /* 左上を起点にする */
+            width: 100%; height: 100%;     /* 画面全体を覆う */
+            background: rgba(0,0,0,0.45); /* 半透明の黒で背景を暗くする */
+            z-index: 200;                  /* カレンダーポップアップ(101)より上に重ねる */
+        }
+
+        /* 設定モーダル本体 */
+        .settings-modal {
+            position: fixed;                    /* 画面に固定表示する */
+            top: 50%; left: 50%;                /* 中心点を画面中央に置く */
+            transform: translate(-50%, -50%);   /* 自身の半分だけずらして完全に中央にする */
+            background: #fff;                   /* 背景を白に */
+            border-radius: 8px;                 /* 角を丸くする */
+            padding: 24px;                      /* 内側の余白 */
+            min-width: 300px;                   /* 最小幅を確保する */
+            max-width: 92vw;                    /* 画面幅の92%を超えないようにする */
+            max-height: 80vh;                   /* 画面高さの80%を超えないようにする */
+            overflow-y: auto;                   /* 縦方向にスクロール可能にする */
+            z-index: 201;                       /* オーバーレイより上に重ねる */
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3); /* 影で浮き上がって見せる */
+            box-sizing: border-box;             /* paddingを含めて幅を計算する */
+        }
+
+        /* 設定モーダルのヘッダー（タイトルと閉じるボタン） */
+        .settings-header {
+            display: flex;                   /* 横並びにする */
+            justify-content: space-between;  /* タイトルを左端、閉じるボタンを右端に配置する */
+            align-items: center;             /* 縦方向を中央に揃える */
+            margin-bottom: 20px;             /* モーダル内容との間の余白 */
+            font-size: 1.1rem;               /* やや大きめのフォントサイズ */
+            font-weight: bold;               /* 太字にする */
+            color: #333;                     /* 文字色 */
+        }
+
+        /* 設定モーダルの✕閉じるボタン */
+        .settings-close {
+            background: none;           /* 背景なし */
+            border: none;               /* 枠線なし */
+            font-size: 1.3rem;          /* 文字サイズ */
+            cursor: pointer;            /* カーソルをポインターにする */
+            color: #888;                /* 薄いグレーの文字色 */
+            line-height: 1;             /* 行間を詰める */
+            touch-action: manipulation; /* タップ遅延を除去する */
+            padding: 4px 8px;           /* タップしやすいよう余白を確保する */
+        }
+
+        /* 提出方法リストの見出し */
+        .settings-section-title {
+            font-size: 0.9rem;       /* やや小さめのフォントサイズ */
+            font-weight: bold;       /* 太字にする */
+            color: #555;             /* グレー文字 */
+            margin-bottom: 8px;      /* リストとの間の余白 */
+        }
+
+        /* 提出方法のリスト */
+        .method-list {
+            list-style: none;      /* 黒丸を消す */
+            padding: 0;            /* 左インデントをなくす */
+            margin: 0 0 20px 0;    /* 下に余白を取る */
+            border: 1px solid #eee; /* リスト全体を枠で囲む */
+            border-radius: 6px;    /* 角を丸くする */
+        }
+
+        /* 提出方法リストの各アイテム */
+        .method-list li {
+            display: flex;                   /* 横並びにする */
+            justify-content: space-between;  /* 名前を左端、ボタンを右端に配置する */
+            align-items: center;             /* 縦方向を中央に揃える */
+            padding: 10px 14px;              /* 内側の余白 */
+            border-bottom: 1px solid #eee;   /* 区切り線 */
+            font-size: 0.95rem;              /* フォントサイズ */
+        }
+
+        /* 最後のアイテムの区切り線を消す */
+        .method-list li:last-child {
+            border-bottom: none;
+        }
+
+        /* 提出方法の削除ボタン */
+        .btn-method-delete {
+            padding: 4px 10px;           /* ボタン内側の余白 */
+            background-color: #e05555;   /* 赤系の背景色 */
+            color: #fff;                 /* 文字を白に */
+            border: none;                /* 枠線なし */
+            border-radius: 4px;          /* 角を丸くする */
+            font-size: 0.8rem;           /* 文字サイズ */
+            cursor: pointer;             /* カーソルをポインターにする */
+            touch-action: manipulation;  /* タップ遅延を除去する */
+            flex-shrink: 0;              /* 縮まないようにする */
+            margin-left: 8px;            /* 名前テキストとの間に余白を取る */
+        }
+
+        /* 提出方法が1件だけの場合は削除ボタンを無効化する（無効状態のスタイル） */
+        .btn-method-delete:disabled {
+            opacity: 0.35;    /* 半透明にして使用不可を示す */
+            cursor: default;  /* ポインターを通常に戻す */
+        }
+
+        /* 提出方法の追加エリア（入力欄＋追加ボタン） */
+        .method-add-row {
+            display: flex;  /* 入力欄とボタンを横並びにする */
+            gap: 8px;       /* 間に余白を取る */
+        }
+
+        /* 追加用テキスト入力欄 */
+        .method-add-row input[type="text"] {
+            flex: 1;              /* 残りの横幅をすべて使う */
+            padding: 8px 10px;    /* 内側の余白 */
+            border: 1px solid #ccc; /* 枠線 */
+            border-radius: 4px;   /* 角を丸くする */
+            font-size: 1rem;      /* フォントサイズ */
+            box-sizing: border-box; /* paddingを含めて幅を計算する */
+            min-width: 0;         /* flexアイテムがはみ出さないようにする */
+            width: auto;          /* 共通スタイルのwidth:100%をリセットする */
+        }
+
+        /* 追加ボタン */
+        .btn-method-add {
+            padding: 8px 16px;           /* ボタン内側の余白 */
+            background-color: #4a90e2;   /* 青系の背景色 */
+            color: #fff;                 /* 文字を白に */
+            border: none;                /* 枠線なし */
+            border-radius: 4px;          /* 角を丸くする */
+            font-size: 0.9rem;           /* 文字サイズ */
+            cursor: pointer;             /* カーソルをポインターにする */
+            touch-action: manipulation;  /* タップ遅延を除去する */
+            flex-shrink: 0;              /* 縮まないようにする */
+            white-space: nowrap;         /* テキストを折り返さない */
+        }
+
+        /* スマホ向け：設定モーダルの追加エリアを縦並びにする */
+        @media (max-width: 400px) {
+            .method-add-row {
+                flex-direction: column; /* 横並び→縦並びに切り替える */
+            }
+            .method-add-row input[type="text"],
+            .btn-method-add {
+                width: 100%; /* 縦並び時は横幅いっぱいに広げる */
+            }
+        }
     </style>
 </head>
 <body>
+
+    <!-- ===== ページ右上：設定ボタン ===== -->
+    <div class="page-header"> <!-- 右上エリアのコンテナ（flex で右寄せ） -->
+        <button class="btn-settings" onclick="openSettings()">⚙ 設定</button> <!-- 設定モーダルを開くボタン -->
+    </div>
 
     <!-- ===== 入力フォームエリア ===== -->
     <div class="form-box"> <!-- フォームをボックスで囲む -->
@@ -684,13 +867,7 @@
         <!-- 提出方法の入力グループ -->
         <div class="form-group">
             <label for="taskMethod">提出方法</label> <!-- 提出方法ラベル -->
-            <select id="taskMethod"> <!-- ドロップダウンで選択式にする -->
-                <option value="オンライン提出">オンライン提出</option> <!-- 選択肢1 -->
-                <option value="印刷して提出">印刷して提出</option>     <!-- 選択肢2 -->
-                <option value="メール送付">メール送付</option>         <!-- 選択肢3 -->
-                <option value="moodle">moodle</option>                  <!-- 選択肢4 -->
-                <option value="ClassRoom">ClassRoom</option>            <!-- 選択肢5 -->
-                <option value="その他">その他</option>                   <!-- 選択肢6 -->
+            <select id="taskMethod"> <!-- ドロップダウン。選択肢はloadMethods()がlocalStorageから動的に生成する -->
             </select>
         </div>
 
@@ -757,10 +934,40 @@
         <ul class="cal-popup-list" id="calPopupList"></ul>
     </div>
 
+    <!-- ===== 設定モーダル ===== -->
+    <!-- オーバーレイ（クリックでモーダルを閉じる） -->
+    <div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()" style="display:none;"></div>
+    <!-- モーダル本体（オーバーレイのクリックが伝播しないよう onclick で伝播を止める） -->
+    <div class="settings-modal" id="settingsModal" onclick="event.stopPropagation()" style="display:none;">
+
+        <!-- モーダルヘッダー：タイトルと閉じるボタン -->
+        <div class="settings-header">
+            <span>⚙ 提出方法の設定</span> <!-- モーダルのタイトル -->
+            <button class="settings-close" onclick="closeSettings()">✕</button> <!-- 閉じるボタン -->
+        </div>
+
+        <!-- 提出方法の現在の一覧 -->
+        <div class="settings-section-title">現在の提出方法</div> <!-- セクション見出し -->
+        <ul class="method-list" id="methodList"> <!-- 提出方法リスト（JSで動的に生成する） -->
+        </ul>
+
+        <!-- 新しい提出方法を追加するエリア -->
+        <div class="settings-section-title">提出方法を追加</div> <!-- セクション見出し -->
+        <div class="method-add-row"> <!-- 入力欄とボタンを横並びにするコンテナ -->
+            <input type="text" id="newMethodInput" placeholder="例：Teams提出" maxlength="30"> <!-- 新しい提出方法名を入力する欄 -->
+            <button class="btn-method-add" onclick="addMethod()">追加</button> <!-- 入力した提出方法を追加するボタン -->
+        </div>
+
+    </div>
+
     <!-- ===== JavaScript：課題の登録・編集・削除・localStorage保存／読込 ===== -->
     <script>
         // localStorageへの保存に使うキー名を定数として定義（タイポ防止のため1か所にまとめる）
-        var STORAGE_KEY = 'kadai_tasks'; // このキー名でブラウザに課題データが保存される
+        var STORAGE_KEY = 'kadai_tasks';   // このキー名でブラウザに課題データが保存される
+        var METHODS_KEY = 'kadai_methods'; // 提出方法リストを保存するキー名
+
+        // 提出方法のデフォルト値（localStorageに保存データがない初回起動時に使う）
+        var DEFAULT_METHODS = ['オンライン提出', '印刷して提出', 'メール送付', 'その他'];
 
         // 現在編集中の課題ID（nullのときは新規登録モード、IDがセットされているときは編集モード）
         var editingId = null;
@@ -1371,6 +1578,153 @@
         }
 
         // -----------------------------------------------------------------
+        // saveMethods(methods) : 提出方法の配列をlocalStorageに保存する
+        // methods: 文字列の配列
+        // -----------------------------------------------------------------
+        function saveMethods(methods) {
+            localStorage.setItem(METHODS_KEY, JSON.stringify(methods)); // 配列をJSON文字列に変換して保存する
+        }
+
+        // -----------------------------------------------------------------
+        // renderMethodSelect() : フォームのドロップダウンを最新の提出方法で再構築する
+        // 現在選択中の値があればそれを維持し、削除された場合は先頭を選択する
+        // -----------------------------------------------------------------
+        function renderMethodSelect() {
+            var saved   = localStorage.getItem(METHODS_KEY);              // 保存データを取得する
+            var methods = saved ? JSON.parse(saved) : DEFAULT_METHODS;    // なければデフォルト値を使う
+
+            var sel      = document.getElementById('taskMethod');  // ドロップダウン要素を取得する
+            var current  = sel.value;                              // 現在選択中の値を退避する（再選択に使う）
+
+            sel.innerHTML = ''; // 既存のすべての選択肢を削除する
+
+            for (var i = 0; i < methods.length; i++) {                // 提出方法の数だけループする
+                var opt       = document.createElement('option');      // <option>要素を生成する
+                opt.value     = methods[i];                            // 値をセットする
+                opt.textContent = methods[i];                          // 表示テキストをセットする
+                sel.appendChild(opt);                                  // ドロップダウンに追加する
+            }
+
+            sel.value = current;                   // 以前選択していた値を復元する
+            if (sel.value === '') {                // 削除などで以前の値が存在しない場合
+                sel.selectedIndex = 0;             // 先頭の選択肢を選択する
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // renderMethodList() : 設定モーダル内の提出方法リストを再構築する
+        // -----------------------------------------------------------------
+        function renderMethodList() {
+            var saved   = localStorage.getItem(METHODS_KEY);             // 保存データを取得する
+            var methods = saved ? JSON.parse(saved) : DEFAULT_METHODS;   // なければデフォルト値を使う
+
+            var ul = document.getElementById('methodList'); // リスト要素を取得する
+            ul.innerHTML = '';                              // 既存の内容をすべて削除する
+
+            for (var i = 0; i < methods.length; i++) {           // 提出方法の数だけループする
+                var li = document.createElement('li');             // <li>要素を生成する
+
+                var span       = document.createElement('span');  // 提出方法名を表示する<span>を生成する
+                span.textContent = methods[i];                    // 提出方法名をセットする
+
+                var btn       = document.createElement('button'); // 削除ボタンを生成する
+                btn.className = 'btn-method-delete';              // スタイルクラスをセットする
+                btn.textContent = '削除';                         // ボタンのテキストをセットする
+
+                if (methods.length <= 1) {
+                    btn.disabled = true; // 1件のみの場合はすべての削除ボタンを無効にする（0件になるのを防ぐ）
+                }
+
+                // クロージャでループ変数 i を正しくキャプチャして各ボタンに正しいインデックスを渡す
+                btn.addEventListener('click', (function(idx) {
+                    return function() { deleteMethod(idx); }; // クリック時に対応するインデックスを渡す
+                })(i));
+
+                li.appendChild(span); // 提出方法名をリストアイテムに追加する
+                li.appendChild(btn);  // 削除ボタンをリストアイテムに追加する
+                ul.appendChild(li);   // リストアイテムをリストに追加する
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // loadMethods() : localStorageから提出方法を読み込み、ドロップダウンを初期化する
+        // ページ初回読み込み時（DOMContentLoaded）に呼ばれる
+        // -----------------------------------------------------------------
+        function loadMethods() {
+            var saved = localStorage.getItem(METHODS_KEY); // 保存データを確認する
+            if (!saved) {
+                saveMethods(DEFAULT_METHODS); // 初回起動時はデフォルト値をlocalStorageに保存する
+            }
+            renderMethodSelect(); // フォームのドロップダウンを構築する
+        }
+
+        // -----------------------------------------------------------------
+        // openSettings() : 設定モーダルを開く
+        // -----------------------------------------------------------------
+        function openSettings() {
+            renderMethodList();                                                          // 最新データでモーダルのリストを描画する
+            document.getElementById('settingsOverlay').style.display = 'block'; // オーバーレイを表示する
+            document.getElementById('settingsModal').style.display   = 'block'; // モーダル本体を表示する
+        }
+
+        // -----------------------------------------------------------------
+        // closeSettings() : 設定モーダルを閉じる
+        // -----------------------------------------------------------------
+        function closeSettings() {
+            document.getElementById('settingsOverlay').style.display = 'none'; // オーバーレイを非表示にする
+            document.getElementById('settingsModal').style.display   = 'none'; // モーダル本体を非表示にする
+        }
+
+        // -----------------------------------------------------------------
+        // addMethod() : 入力欄の値を新しい提出方法として追加する
+        // -----------------------------------------------------------------
+        function addMethod() {
+            var input = document.getElementById('newMethodInput'); // 入力欄要素を取得する
+            var name  = input.value.trim();                        // 前後の空白を除去する
+
+            if (name === '') {
+                alert('提出方法名を入力してください。'); // 空白の場合はアラートを表示して中断する
+                return;
+            }
+
+            var saved   = localStorage.getItem(METHODS_KEY);            // 保存データを取得する
+            var methods = saved ? JSON.parse(saved) : DEFAULT_METHODS;  // なければデフォルト値を使う
+
+            // 同名の提出方法が既にある場合は追加しない
+            for (var i = 0; i < methods.length; i++) {
+                if (methods[i] === name) {
+                    alert('「' + name + '」はすでに登録されています。'); // 重複の場合はアラートを表示する
+                    return;
+                }
+            }
+
+            methods.push(name);        // 新しい提出方法を末尾に追加する
+            saveMethods(methods);       // localStorageに保存する
+            input.value = '';           // 入力欄をクリアする
+            renderMethodSelect();       // フォームのドロップダウンを更新する
+            renderMethodList();         // モーダルのリストを更新する
+        }
+
+        // -----------------------------------------------------------------
+        // deleteMethod(index) : 指定した提出方法を削除する
+        // index: 提出方法配列のインデックス
+        // -----------------------------------------------------------------
+        function deleteMethod(index) {
+            var saved   = localStorage.getItem(METHODS_KEY);            // 保存データを取得する
+            var methods = saved ? JSON.parse(saved) : DEFAULT_METHODS;  // なければデフォルト値を使う
+
+            if (methods.length <= 1) {
+                alert('最低1つの提出方法が必要です。'); // 1件しかない場合は削除できない
+                return;
+            }
+
+            methods.splice(index, 1); // 指定インデックスの要素を1件削除する
+            saveMethods(methods);      // 変更後の配列をlocalStorageに保存する
+            renderMethodSelect();      // フォームのドロップダウンを更新する
+            renderMethodList();        // モーダルのリストを更新する
+        }
+
+        // -----------------------------------------------------------------
         // escapeHtml(str) : XSS攻撃を防ぐためHTMLの特殊文字をエスケープする
         // -----------------------------------------------------------------
         function escapeHtml(str) {
@@ -1379,10 +1733,11 @@
             return div.innerHTML;                          // エスケープ済みのHTML文字列を返す
         }
 
-        // ページのHTMLが読み込まれた直後にloadTasks()を実行する
+        // ページのHTMLが読み込まれた直後に初期化処理を実行する
         // DOMContentLoadedを使うことで、HTML要素が存在する状態で安全に実行できる
         window.addEventListener('DOMContentLoaded', function () {
-            loadTasks(); // localStorageから保存済み課題を読み込んで表示する
+            loadMethods(); // 提出方法をlocalStorageから読み込んでドロップダウンを初期化する
+            loadTasks();   // 課題データをlocalStorageから読み込んで一覧を表示する
         });
     </script>
 
