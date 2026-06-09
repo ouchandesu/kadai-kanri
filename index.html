@@ -364,6 +364,291 @@
             .btn-undone:hover {
                 background-color: #757575; /* 未完了ボタンのホバー色（少し濃いグレー） */
             }
+            .cal-nav-btn:hover {
+                background-color: #357abd; /* 前月・翌月ボタンのホバー色 */
+            }
+            .cal-day:hover {
+                background-color: #f0f4ff; /* 日付セルのホバー背景色（薄い青） */
+            }
+        }
+
+        /* ===================================================================
+           タブ切り替え：リスト表示とカレンダー表示を切り替えるタブUI
+           =================================================================== */
+
+        /* タブボタン群のコンテナ */
+        .tab-group {
+            display: flex;                 /* ボタンを横並びにする */
+            border-bottom: 2px solid #ddd; /* タブ下の区切り線（アクティブタブの下線で上書きされる） */
+            margin-bottom: 16px;           /* タブとコンテンツの間の余白 */
+        }
+
+        /* 各タブボタンの基本スタイル */
+        .tab-btn {
+            flex: 1;                              /* 横幅を等分する */
+            padding: 12px 0;                      /* 上下余白でタップしやすくする */
+            background: none;                     /* 背景なし */
+            color: #999;                          /* 非アクティブ時の薄い文字色 */
+            border: none;                         /* 枠線をなくす */
+            border-bottom: 3px solid transparent; /* アクティブ時に色付き下線で上書きする */
+            margin-bottom: -2px;                  /* .tab-groupの区切り線に重ねてつなげる */
+            font-size: 1rem;                      /* 文字サイズ */
+            cursor: pointer;                      /* カーソルをポインターにする */
+            touch-action: manipulation;           /* タップ時の300ms遅延を除去する */
+            transition: color 0.15s, border-bottom-color 0.15s; /* 色変化をなめらかにする */
+        }
+
+        /* アクティブなタブボタン */
+        .tab-btn.active {
+            color: #4a90e2;                   /* 青い文字色にして強調する */
+            font-weight: bold;                /* 太字にする */
+            border-bottom: 3px solid #4a90e2; /* 青い下線でアクティブと示す */
+        }
+
+        /* ===================================================================
+           カレンダーボックス
+           =================================================================== */
+
+        /* カレンダー全体を囲むボックス（list-boxと同様のデザイン） */
+        .calendar-box {
+            background: #fff;                       /* 背景を白に */
+            border-radius: 8px;                     /* 角を丸くする */
+            padding: 20px;                          /* 内側の余白 */
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* 軽い影を付ける */
+        }
+
+        /* カレンダーヘッダー（年月表示と前月・翌月ボタンの行） */
+        .cal-header {
+            display: flex;                   /* 横並びにする */
+            justify-content: space-between;  /* 両端に配置する */
+            align-items: center;             /* 縦方向を中央に揃える */
+            margin-bottom: 16px;             /* カレンダー本体との間の余白 */
+        }
+
+        /* 年月タイトル（例：2026年6月） */
+        .cal-title {
+            font-size: 1.15rem; /* やや大きめのフォントサイズ */
+            font-weight: bold;  /* 太字にする */
+            color: #333;        /* 文字色 */
+        }
+
+        /* 前月・翌月ボタン */
+        .cal-nav-btn {
+            padding: 6px 16px;           /* ボタン内側の余白 */
+            background-color: #4a90e2;   /* 青系の背景色 */
+            color: #fff;                 /* 文字を白に */
+            border: none;                /* 枠線をなくす */
+            border-radius: 4px;          /* 角を丸くする */
+            font-size: 1rem;             /* 文字サイズ */
+            cursor: pointer;             /* カーソルをポインターにする */
+            touch-action: manipulation;  /* タップ遅延を除去する */
+        }
+
+        /* 曜日ヘッダー行（日〜土の7列グリッド） */
+        .cal-weekdays {
+            display: grid;                         /* グリッドにする */
+            grid-template-columns: repeat(7, 1fr); /* 7等分する */
+            margin-bottom: 4px;                    /* グリッドとの間の余白 */
+        }
+
+        /* 各曜日ラベル */
+        .cal-weekday {
+            text-align: center;  /* 中央寄せにする */
+            font-size: 0.8rem;   /* やや小さめのフォントサイズ */
+            font-weight: bold;   /* 太字にする */
+            padding: 4px 0;      /* 上下の余白 */
+            color: #555;         /* 文字色 */
+        }
+
+        .cal-weekday:first-child { color: #e05555; } /* 日曜ラベルを赤にする */
+        .cal-weekday:last-child  { color: #4a90e2; } /* 土曜ラベルを青にする */
+
+        /* カレンダー日付グリッド（6週×7日＝42マス） */
+        .cal-grid {
+            display: grid;                         /* グリッドにする */
+            grid-template-columns: repeat(7, 1fr); /* 7等分する */
+            gap: 2px;                              /* セル間の隙間 */
+        }
+
+        /* 各日付セル */
+        .cal-day {
+            min-height: 80px;        /* セルの最小高さ */
+            border: 1px solid #eee;  /* 細いグレーの枠線 */
+            border-radius: 4px;      /* 角を少し丸くする */
+            padding: 4px;            /* セル内側の余白 */
+            cursor: pointer;         /* クリック可能と示す */
+            overflow: hidden;        /* セルからはみ出た内容を隠す */
+            box-sizing: border-box;  /* paddingを含めて幅を計算する */
+        }
+
+        /* 前月・翌月の日付セルは薄く表示する */
+        .cal-day.other-month {
+            background-color: #f8f8f8; /* 薄いグレー背景 */
+            opacity: 0.5;              /* 不透明度を下げて目立たなくする */
+        }
+
+        /* 今日の日付セルを枠線で強調する */
+        .cal-day.today {
+            border: 2px solid #4a90e2; /* 青い枠線で今日を示す */
+        }
+
+        /* 日付番号のスタイル */
+        .cal-day-num {
+            font-size: 0.8rem;        /* やや小さめのフォントサイズ */
+            font-weight: bold;        /* 太字にする */
+            margin-bottom: 2px;       /* タスクチップとの間の余白 */
+            width: 22px;              /* 円形にするための固定幅 */
+            height: 22px;             /* 円形にするための固定高さ */
+            display: flex;            /* テキストを中央配置するためflexにする */
+            align-items: center;      /* 縦方向を中央に揃える */
+            justify-content: center;  /* 横方向を中央に揃える */
+            border-radius: 50%;       /* 円形にする */
+            line-height: 1;           /* 行間を詰める */
+            color: #333;              /* 通常の文字色 */
+        }
+
+        /* 今日の日付番号を青い円で強調する */
+        .cal-day.today .cal-day-num {
+            background-color: #4a90e2; /* 青い背景の円 */
+            color: #fff;               /* 文字を白に */
+        }
+
+        /* 日曜の日付番号を赤にする（today優先のため:not(.today)で除外） */
+        .cal-day.sunday:not(.today) .cal-day-num { color: #e05555; }
+
+        /* 土曜の日付番号を青にする */
+        .cal-day.saturday:not(.today) .cal-day-num { color: #4a90e2; }
+
+        /* 課題チップ（カレンダーセル内のミニラベル） */
+        .cal-task {
+            font-size: 0.68rem;      /* 小さめのフォントサイズ */
+            padding: 2px 4px;        /* チップ内側の余白 */
+            border-radius: 3px;      /* 角を丸くする */
+            margin-bottom: 2px;      /* チップ間の余白 */
+            white-space: nowrap;     /* テキストを折り返さない */
+            overflow: hidden;        /* はみ出た文字を隠す */
+            text-overflow: ellipsis; /* はみ出た文字を「...」で省略する */
+            color: #fff;             /* 文字を白に */
+            display: block;          /* ブロック要素として縦に積む */
+        }
+
+        .cal-task.urgent  { background-color: #e05555; } /* 3日以内：赤 */
+        .cal-task.warning { background-color: #f0a500; } /* 7日以内：オレンジ */
+        .cal-task.normal  { background-color: #4a90e2; } /* それ以外：青 */
+        .cal-task.done-task { opacity: 0.4; }             /* 完了済みは薄く表示する */
+
+        /* ===================================================================
+           日付クリックポップアップ
+           =================================================================== */
+
+        /* 背景を暗くするオーバーレイ */
+        .cal-popup-overlay {
+            position: fixed;               /* 画面全体に固定表示する */
+            top: 0; left: 0;               /* 左上を起点にする */
+            width: 100%; height: 100%;     /* 画面全体を覆う */
+            background: rgba(0,0,0,0.45); /* 半透明の黒で背景を暗くする */
+            z-index: 100;                  /* ポップアップより下に重ねる */
+        }
+
+        /* ポップアップ本体 */
+        .cal-popup {
+            position: fixed;                   /* 画面に固定表示する */
+            top: 50%; left: 50%;               /* 中心点を画面中央に置く */
+            transform: translate(-50%, -50%);  /* 自身の半分だけずらして完全に中央にする */
+            background: #fff;                   /* 背景を白に */
+            border-radius: 8px;                 /* 角を丸くする */
+            padding: 24px;                      /* 内側の余白 */
+            min-width: 280px;                   /* 最小幅を確保する */
+            max-width: 90vw;                    /* 画面幅の90%を超えないようにする */
+            max-height: 80vh;                   /* 画面高さの80%を超えないようにする */
+            overflow-y: auto;                   /* 縦方向にスクロール可能にする */
+            z-index: 101;                       /* オーバーレイより上に重ねる */
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3); /* 影で浮き上がって見せる */
+        }
+
+        /* ポップアップヘッダー（日付タイトルと閉じるボタン） */
+        .cal-popup-header {
+            display: flex;                   /* 横並びにする */
+            justify-content: space-between;  /* 両端に配置する */
+            align-items: center;             /* 縦方向を中央に揃える */
+            margin-bottom: 16px;             /* リストとの間の余白 */
+            font-size: 1.05rem;              /* やや大きめのフォントサイズ */
+            font-weight: bold;               /* 太字にする */
+            color: #333;                     /* 文字色 */
+        }
+
+        /* ポップアップの✕閉じるボタン */
+        .cal-popup-close {
+            background: none;           /* 背景なし */
+            border: none;               /* 枠線なし */
+            font-size: 1.3rem;          /* 文字サイズ */
+            cursor: pointer;            /* カーソルをポインターにする */
+            color: #888;                /* 薄いグレーの文字色 */
+            line-height: 1;             /* 行間を詰める */
+            touch-action: manipulation; /* タップ遅延を除去する */
+            padding: 4px 8px;           /* タップしやすいよう余白を確保する */
+        }
+
+        /* ポップアップのタスクリスト */
+        .cal-popup-list {
+            list-style: none; /* 黒丸を消す */
+            padding: 0;       /* 左側インデントをなくす */
+            margin: 0;        /* 余白をリセットする */
+        }
+
+        /* ポップアップの各タスクアイテム */
+        .cal-popup-list li {
+            padding: 10px 14px; /* 内側の余白 */
+            border-radius: 6px; /* 角を丸くする */
+            margin-bottom: 8px; /* アイテム間の余白 */
+            color: #fff;        /* 文字を白に */
+            font-size: 0.9rem;  /* フォントサイズ */
+            line-height: 1.6;   /* 行間を広くして読みやすくする */
+        }
+
+        .cal-popup-list li.urgent  { background-color: #e05555; } /* 3日以内：赤 */
+        .cal-popup-list li.warning { background-color: #f0a500; } /* 7日以内：オレンジ */
+        .cal-popup-list li.normal  { background-color: #4a90e2; } /* それ以外：青 */
+        .cal-popup-list li.done-task { opacity: 0.6; }             /* 完了済みは少し薄く表示する */
+
+        /* ポップアップに課題がない場合のメッセージ */
+        .cal-popup-empty {
+            color: #aaa;         /* 薄いグレー */
+            font-style: italic;  /* 斜体にする */
+            text-align: center;  /* 中央寄せにする */
+            padding: 12px 0;     /* 上下の余白 */
+        }
+
+        /* カレンダーのスマホ向け追加調整 */
+        @media (max-width: 600px) {
+            /* タブのフォントサイズをスマホ向けに調整する */
+            .tab-btn {
+                font-size: 0.9rem; /* PCより少し小さくする */
+            }
+
+            /* カレンダーの内側余白を縮小する */
+            .calendar-box {
+                padding: 12px; /* PC(20px)より縮小する */
+            }
+
+            /* セルの最小高さをスマホ向けに縮小する */
+            .cal-day {
+                min-height: 52px; /* PC(80px)→スマホ(52px) */
+                padding: 2px;     /* 余白も縮小する */
+            }
+
+            /* 日付番号を小さくする */
+            .cal-day-num {
+                font-size: 0.7rem; /* PCより小さくする */
+                width: 18px;       /* 幅を縮小する */
+                height: 18px;      /* 高さを縮小する */
+            }
+
+            /* タスクチップをスマホ向けに縮小する */
+            .cal-task {
+                font-size: 0.58rem; /* PCより小さくする */
+                padding: 1px 2px;   /* 余白を縮小する */
+            }
         }
     </style>
 </head>
@@ -413,13 +698,63 @@
         <button id="submitBtn" onclick="addTask()">登録する</button>
     </div>
 
-    <!-- ===== 課題一覧エリア ===== -->
-    <div class="list-box"> <!-- 課題リストをボックスで囲む -->
-        <h1>課題一覧</h1> <!-- 一覧のタイトル -->
-        <ul id="taskList"> <!-- 課題アイテムをここに追加していく -->
-            <!-- 初期表示：まだ課題がない旨を示すメッセージ -->
-            <li class="empty-message" id="emptyMessage">まだ課題が登録されていません。</li>
-        </ul>
+    <!-- ===== タブ切り替えボタン ===== -->
+    <div class="tab-group"> <!-- リストとカレンダーを切り替えるタブのコンテナ -->
+        <button class="tab-btn active" id="tabList" onclick="showTab('list')">📋 リスト</button>       <!-- リスト表示タブ（初期表示） -->
+        <button class="tab-btn"        id="tabCalendar" onclick="showTab('calendar')">📅 カレンダー</button> <!-- カレンダー表示タブ -->
+    </div>
+
+    <!-- ===== リスト表示エリア（初期表示） ===== -->
+    <div id="viewList"> <!-- タブ切り替えでshow/hideするコンテナ -->
+        <div class="list-box"> <!-- 課題リストをボックスで囲む -->
+            <h1>課題一覧</h1> <!-- 一覧のタイトル -->
+            <ul id="taskList"> <!-- 課題アイテムをここに追加していく -->
+                <!-- 初期表示：まだ課題がない旨を示すメッセージ -->
+                <li class="empty-message" id="emptyMessage">まだ課題が登録されていません。</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ===== カレンダー表示エリア（初期は非表示） ===== -->
+    <div id="viewCalendar" style="display:none;"> <!-- タブ切り替えでshow/hideするコンテナ -->
+        <div class="calendar-box"> <!-- カレンダーをボックスで囲む -->
+
+            <!-- カレンダーヘッダー：前月ボタン・年月タイトル・翌月ボタン -->
+            <div class="cal-header">
+                <button class="cal-nav-btn" onclick="moveMonth(-1)">＜ 前月</button> <!-- 前月へ移動するボタン -->
+                <span class="cal-title" id="calTitle"></span>                        <!-- 現在の年月（JSで書き込む） -->
+                <button class="cal-nav-btn" onclick="moveMonth(1)">次月 ＞</button>  <!-- 翌月へ移動するボタン -->
+            </div>
+
+            <!-- 曜日ヘッダー行（日〜土） -->
+            <div class="cal-weekdays">
+                <div class="cal-weekday">日</div> <!-- 日曜（赤） -->
+                <div class="cal-weekday">月</div> <!-- 月曜 -->
+                <div class="cal-weekday">火</div> <!-- 火曜 -->
+                <div class="cal-weekday">水</div> <!-- 水曜 -->
+                <div class="cal-weekday">木</div> <!-- 木曜 -->
+                <div class="cal-weekday">金</div> <!-- 金曜 -->
+                <div class="cal-weekday">土</div> <!-- 土曜（青） -->
+            </div>
+
+            <!-- カレンダーグリッド（JSで42マスを動的に生成する） -->
+            <div class="cal-grid" id="calGrid"></div>
+
+        </div>
+    </div>
+
+    <!-- ===== 日付クリックポップアップ ===== -->
+    <!-- オーバーレイ（クリックでポップアップを閉じる） -->
+    <div class="cal-popup-overlay" id="calPopupOverlay" onclick="closeDayPopup()" style="display:none;"></div>
+    <!-- ポップアップ本体 -->
+    <div class="cal-popup" id="calPopup" style="display:none;">
+        <!-- ヘッダー：日付タイトルと閉じるボタン -->
+        <div class="cal-popup-header">
+            <span id="calPopupDate"></span> <!-- クリックした日付（JSで書き込む） -->
+            <button class="cal-popup-close" onclick="closeDayPopup()">✕</button> <!-- 閉じるボタン -->
+        </div>
+        <!-- その日の課題リスト（JSで動的に生成する） -->
+        <ul class="cal-popup-list" id="calPopupList"></ul>
     </div>
 
     <!-- ===== JavaScript：課題の登録・編集・削除・localStorage保存／読込 ===== -->
@@ -429,6 +764,236 @@
 
         // 現在編集中の課題ID（nullのときは新規登録モード、IDがセットされているときは編集モード）
         var editingId = null;
+
+        // カレンダーが現在表示している年と月（0始まり）を管理する変数
+        var calYear  = new Date().getFullYear(); // 初期値：現在の年
+        var calMonth = new Date().getMonth();    // 初期値：現在の月（0=1月、11=12月）
+
+        // -----------------------------------------------------------------
+        // showTab(tabName) : タブを切り替えてリストまたはカレンダーを表示する
+        // tabName: 'list' または 'calendar'
+        // -----------------------------------------------------------------
+        function showTab(tabName) {
+            var isCalendar = tabName === 'calendar'; // カレンダータブが選ばれたかを判定する
+
+            // リストとカレンダーのビューを表示・非表示に切り替える
+            document.getElementById('viewList').style.display     = isCalendar ? 'none'  : 'block'; // リスト：カレンダー時は非表示
+            document.getElementById('viewCalendar').style.display = isCalendar ? 'block' : 'none';  // カレンダー：選択時のみ表示
+
+            // タブボタンのactiveクラスを切り替える
+            document.getElementById('tabList').classList.toggle('active',     !isCalendar); // リストタブ
+            document.getElementById('tabCalendar').classList.toggle('active', isCalendar);  // カレンダータブ
+
+            // カレンダーに切り替えた場合はその場で描画する
+            if (isCalendar) {
+                renderCalendar(); // 最新のlocalStorageデータでカレンダーを描画する
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // moveMonth(delta) : カレンダーの表示月を移動する
+        // delta: +1で翌月、-1で前月
+        // -----------------------------------------------------------------
+        function moveMonth(delta) {
+            calMonth += delta;         // 月をdeltaだけ増減する
+            if (calMonth < 0) {        // 1月（0）より前になった場合
+                calMonth = 11;         // 12月（11）に戻す
+                calYear--;             // 年を1つ減らす
+            }
+            if (calMonth > 11) {       // 12月（11）より後になった場合
+                calMonth = 0;          // 1月（0）に戻す
+                calYear++;             // 年を1つ増やす
+            }
+            renderCalendar();          // 移動後の月のカレンダーを再描画する
+        }
+
+        // -----------------------------------------------------------------
+        // getUrgencyClass(deadlineStr) : 締め切りまでの残り日数から緊急度クラスを返す
+        // deadlineStr: 'YYYY-MM-DDTHH:MM' 形式の文字列
+        // 返り値: 'urgent'（3日以内・赤）/ 'warning'（7日以内・オレンジ）/ 'normal'（青）
+        // -----------------------------------------------------------------
+        function getUrgencyClass(deadlineStr) {
+            var today    = new Date();                  // 現在の日時を取得する
+            today.setHours(0, 0, 0, 0);                 // 時刻を0時0分0秒にして日付のみで比較する
+            var deadline = new Date(deadlineStr);       // 締め切り文字列をDateオブジェクトに変換する
+            var diffMs   = deadline - today;            // 締め切りまでのミリ秒差を計算する
+            var diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24)); // ミリ秒を日数に変換する（切り上げ）
+            if (diffDays <= 3) return 'urgent';         // 3日以内（過去分含む）は赤
+            if (diffDays <= 7) return 'warning';        // 7日以内はオレンジ
+            return 'normal';                            // それ以外は青
+        }
+
+        // -----------------------------------------------------------------
+        // renderCalendar() : calYear / calMonth の月カレンダーを描画する
+        // -----------------------------------------------------------------
+        function renderCalendar() {
+            // 年月タイトルを更新する（例：「2026年6月」）
+            document.getElementById('calTitle').textContent =
+                calYear + '年' + (calMonth + 1) + '月'; // calMonthは0始まりなので+1して表示する
+
+            // localStorageから課題データを読み込む
+            var saved = localStorage.getItem(STORAGE_KEY);  // 保存データをJSON文字列で取得する
+            var tasks = saved ? JSON.parse(saved) : [];      // JSON文字列を配列に変換する
+
+            // 課題を締め切り日付（YYYY-MM-DD）ごとにまとめたマップを作る
+            // キー: 'YYYY-MM-DD', 値: その日の課題オブジェクトの配列
+            var taskMap = {};                                      // マップを空で初期化する
+            for (var i = 0; i < tasks.length; i++) {               // 全課題をループする
+                var dateKey = tasks[i].deadline.split('T')[0];     // 'T'の前の日付部分だけ取り出す
+                if (!taskMap[dateKey]) { taskMap[dateKey] = []; }  // 初めての日付は空配列を作る
+                taskMap[dateKey].push(tasks[i]);                   // その日の配列に課題を追加する
+            }
+
+            // カレンダーグリッドの開始日を計算する（表示月1日の属する週の日曜日）
+            var firstDay  = new Date(calYear, calMonth, 1);     // 表示月の1日を取得する
+            var startDate = new Date(firstDay);                 // コピーを作って変更する
+            startDate.setDate(1 - firstDay.getDay());           // 1日の曜日（0=日）分だけ引いて日曜始まりにする
+
+            // 今日の日付（セルの「今日」判定に使う）
+            var today = new Date();      // 現在の日時を取得する
+            today.setHours(0, 0, 0, 0); // 時刻をリセットして日付のみで比較する
+
+            // グリッドをクリアして再描画する
+            var grid = document.getElementById('calGrid'); // グリッド要素を取得する
+            grid.innerHTML = '';                           // 既存の描画をすべて消去する
+
+            // 42マス（6週×7日）分のセルを生成する
+            for (var d = 0; d < 42; d++) {                      // 0〜41のインデックスでループする
+                var cellDate  = new Date(startDate);             // 開始日のコピーを作る
+                cellDate.setDate(startDate.getDate() + d);       // d日後の日付を計算する
+
+                var cellYear  = cellDate.getFullYear(); // セルの年を取得する
+                var cellMonth = cellDate.getMonth();    // セルの月を取得する（0始まり）
+                var cellDay   = cellDate.getDate();     // セルの日を取得する
+
+                // 日付キーを 'YYYY-MM-DD' 形式で組み立てる（localStorageの形式に合わせる）
+                var mm      = (cellMonth + 1) < 10 ? '0' + (cellMonth + 1) : String(cellMonth + 1); // 月を2桁にする
+                var dd      = cellDay < 10           ? '0' + cellDay        : String(cellDay);       // 日を2桁にする
+                var dateKey = cellYear + '-' + mm + '-' + dd;  // 'YYYY-MM-DD' 形式のキーを作る
+
+                // セルとなる<div>要素を作成する
+                var cell = document.createElement('div'); // 新しいdiv要素を生成する
+                cell.className   = 'cal-day';             // 基本クラスを付ける
+                cell.dataset.date = dateKey;              // クリック時に日付を取得できるようdata属性に保存する
+
+                // 表示月以外（前月・翌月）のセルに other-month クラスを付ける
+                if (cellMonth !== calMonth) {
+                    cell.classList.add('other-month'); // 薄い表示にするクラスを付ける
+                }
+
+                // 今日のセルに today クラスを付ける
+                if (cellDate.getTime() === today.getTime()) {
+                    cell.classList.add('today'); // 青枠で強調するクラスを付ける
+                }
+
+                // 曜日に応じてクラスを付けて色分けする
+                var dow = cellDate.getDay(); // 0=日曜、6=土曜
+                if (dow === 0) cell.classList.add('sunday');   // 日曜：日付番号を赤にする
+                if (dow === 6) cell.classList.add('saturday'); // 土曜：日付番号を青にする
+
+                // セルをクリックしたときポップアップを表示するイベントを登録する
+                // クロージャを使ってループ内の dateKey を正しく捕捉する
+                cell.addEventListener('click', (function(dk) {
+                    return function() { showDayPopup(dk); }; // クリック時にその日のdateKeyを渡す
+                })(dateKey));
+
+                // 日付番号の<div>を生成してセルに追加する
+                var numDiv = document.createElement('div'); // 日付番号用のdivを生成する
+                numDiv.className   = 'cal-day-num';         // スタイル用クラスを付ける
+                numDiv.textContent = cellDay;               // 日付数字を表示する
+                cell.appendChild(numDiv);                   // セルに日付番号を追加する
+
+                // この日の課題チップを生成してセルに追加する
+                var dayTasks = taskMap[dateKey] || []; // この日の課題リスト（なければ空配列）
+                for (var t = 0; t < dayTasks.length; t++) {                  // この日の全課題をループする
+                    var chip = document.createElement('div');                 // チップ用のdivを生成する
+                    var urg  = getUrgencyClass(dayTasks[t].deadline);         // 締め切りまでの緊急度を取得する
+                    chip.className   = 'cal-task ' + urg +                   // 緊急度クラスを付ける
+                        (dayTasks[t].done ? ' done-task' : '');              // 完了済みはさらに薄くする
+                    chip.textContent = dayTasks[t].name;                     // 課題名をテキストとして表示する
+                    chip.title       = dayTasks[t].name;                     // ホバー時に全文をツールチップ表示する
+                    cell.appendChild(chip);                                   // セルにチップを追加する
+                }
+
+                grid.appendChild(cell); // 完成したセルをグリッドに追加する
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // showDayPopup(dateStr) : 日付セルがクリックされたとき、その日の課題一覧をポップアップ表示する
+        // dateStr: 'YYYY-MM-DD' 形式の文字列
+        // -----------------------------------------------------------------
+        function showDayPopup(dateStr) {
+            // localStorageから課題データを読み込む
+            var saved = localStorage.getItem(STORAGE_KEY);  // 保存データをJSON文字列で取得する
+            var tasks = saved ? JSON.parse(saved) : [];      // JSON文字列を配列に変換する
+
+            // クリックした日付の課題だけを抽出する
+            var dayTasks = tasks.filter(function(t) {
+                return t.deadline.split('T')[0] === dateStr; // 日付部分が一致する課題を残す
+            });
+
+            // ポップアップの日付タイトルを日本語形式で表示する（例：「2026年6月15日の課題」）
+            var parts = dateStr.split('-');           // '-'で年月日に分割する
+            var py = parseInt(parts[0], 10);          // 年を整数に変換する
+            var pm = parseInt(parts[1], 10);          // 月を整数に変換する
+            var pd = parseInt(parts[2], 10);          // 日を整数に変換する
+            document.getElementById('calPopupDate').textContent =
+                py + '年' + pm + '月' + pd + '日の課題'; // 日本語形式に組み立てる
+
+            // ポップアップのリストを生成する
+            var list = document.getElementById('calPopupList'); // リスト要素を取得する
+            list.innerHTML = '';                                 // 既存の内容をクリアする
+
+            if (dayTasks.length === 0) {
+                // この日に課題がない場合はメッセージを表示する
+                var emptyP = document.createElement('p'); // メッセージ用の<p>要素を生成する
+                emptyP.className   = 'cal-popup-empty';   // スタイルクラスを付ける
+                emptyP.textContent = 'この日の課題はありません。'; // テキストを設定する
+                list.appendChild(emptyP);                 // リストに追加する
+            } else {
+                // この日の課題を1件ずつリストに追加する
+                for (var i = 0; i < dayTasks.length; i++) {
+                    var li      = document.createElement('li');               // リストアイテムを生成する
+                    var urg     = getUrgencyClass(dayTasks[i].deadline);      // 緊急度クラスを取得する
+                    li.className = urg + (dayTasks[i].done ? ' done-task' : ''); // 緊急度と完了状態のクラスを付ける
+
+                    // 授業名（ある場合のみ表示）・課題名・時刻・提出方法・完了状態を組み立てる
+                    var subjectStr = dayTasks[i].subject ? '🏫 ' + escapeHtml(dayTasks[i].subject) + '<br>' : ''; // 授業名（任意）
+                    var timeStr    = dayTasks[i].deadline.split('T')[1] || '00:00';                                // 時刻部分（なければ00:00）
+                    var doneStr    = dayTasks[i].done ? '　✅ 完了' : '';                                          // 完了状態の表示
+                    li.innerHTML   =
+                        subjectStr +                                                                               // 授業名行（あれば）
+                        '<strong>' + escapeHtml(dayTasks[i].name) + '</strong>' + doneStr + '<br>' +             // 課題名と完了マーク
+                        '<small>⏰ ' + timeStr + '　📬 ' + escapeHtml(dayTasks[i].method) + '</small>';          // 時刻と提出方法
+
+                    list.appendChild(li); // リストにアイテムを追加する
+                }
+            }
+
+            // オーバーレイとポップアップを表示する
+            document.getElementById('calPopupOverlay').style.display = 'block'; // 背景を暗くするオーバーレイを表示する
+            document.getElementById('calPopup').style.display        = 'block'; // ポップアップ本体を表示する
+        }
+
+        // -----------------------------------------------------------------
+        // closeDayPopup() : ポップアップとオーバーレイを非表示にする
+        // -----------------------------------------------------------------
+        function closeDayPopup() {
+            document.getElementById('calPopupOverlay').style.display = 'none'; // オーバーレイを非表示にする
+            document.getElementById('calPopup').style.display        = 'none'; // ポップアップを非表示にする
+        }
+
+        // -----------------------------------------------------------------
+        // refreshCalendarIfVisible() : カレンダービューが表示中の場合だけ再描画する
+        // addTask / updateTask / deleteTask / toggleDone から呼ばれる
+        // -----------------------------------------------------------------
+        function refreshCalendarIfVisible() {
+            // カレンダービューが現在表示されているか確認する
+            if (document.getElementById('viewCalendar').style.display !== 'none') {
+                renderCalendar(); // 表示中なら最新データで再描画する
+            }
+        }
 
         // -----------------------------------------------------------------
         // createTaskElement(task) : 課題オブジェクトを受け取り<li>要素を生成して返す
@@ -589,6 +1154,8 @@
 
             renderTask(task); // 追加した課題を画面のリストに即時表示する
 
+            refreshCalendarIfVisible(); // カレンダービューが開いていれば再描画して追加課題を反映する
+
             // 登録後、入力欄をリセットして次の入力を準備する
             document.getElementById('taskSubject').value        = '';  // 授業名の入力欄をクリアする
             document.getElementById('taskName').value           = '';  // 課題名の入力欄をクリアする
@@ -712,6 +1279,8 @@
             submitBtn.textContent = '登録する';                          // ボタンのテキストを元に戻す
             submitBtn.onclick     = addTask;                            // クリック時の関数をaddTaskに戻す
 
+            refreshCalendarIfVisible(); // カレンダービューが開いていれば再描画して更新内容を反映する
+
             // 編集モードを終了してグローバル変数をリセットする
             editingId = null; // nullに戻すことで次の操作が新規登録モードになる
         }
@@ -747,6 +1316,8 @@
                 btn.textContent = '完了';        // ボタンのテキストを「完了」に戻す
                 btn.className   = 'btn-done';   // ボタンのクラスを緑系に戻す
             }
+
+            refreshCalendarIfVisible(); // カレンダービューが開いていれば再描画して完了状態を反映する
         }
 
         // -----------------------------------------------------------------
@@ -785,6 +1356,8 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(newTasks)); // 更新した配列をlocalStorageへ書き込む
 
             li.remove(); // DOMから<li>要素を削除して画面上の表示を消す
+
+            refreshCalendarIfVisible(); // カレンダービューが開いていれば再描画して削除を反映する
 
             // 課題が0件になった場合は「まだ登録されていません」メッセージを再表示する
             var list = document.getElementById('taskList'); // <ul>要素を取得する
