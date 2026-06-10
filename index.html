@@ -5,497 +5,511 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- スマホでも正しく表示されるよう設定 -->
     <title>課題管理</title> <!-- ブラウザのタブに表示されるタイトル -->
     <style>
+        /* ===== リセット & ベース ===== */
+
+        /* 全要素のbox-sizingをborder-boxに統一してpadding/borderを幅に含める */
+        *, *::before, *::after { box-sizing: border-box; }
+
         /* ページ全体のフォントとレイアウト設定 */
         body {
-            font-family: sans-serif; /* 読みやすいフォントを指定 */
-            max-width: 700px;        /* 横幅の最大値を設定して読みやすくする */
-            margin: 40px auto;       /* 上下に余白を取り、左右中央に配置 */
-            padding: 0 20px;         /* 左右に内側の余白を追加 */
-            background-color: #f5f5f5; /* ページ背景を薄いグレーに */
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', Helvetica, Arial, sans-serif; /* モダンなシステムフォントスタック */
+            max-width: 720px;          /* 横幅の最大値 */
+            margin: 32px auto;         /* 上下余白を取り左右中央に配置 */
+            padding: 0 20px;           /* 左右に内側の余白を追加 */
+            background-color: #ffffff; /* 白背景に統一 */
+            color: #111111;            /* メインテキストはほぼ黒 */
+            -webkit-font-smoothing: antialiased;  /* macOS/iOSでのフォントアンチエイリアス */
+            -moz-osx-font-smoothing: grayscale;   /* Firefoxでのフォントアンチエイリアス */
         }
 
-        /* 入力フォーム全体を囲むボックスのスタイル */
+        /* ===== 入力フォームカード ===== */
+
+        /* フォーム全体を囲むカード */
         .form-box {
-            background: #fff;        /* 背景を白にしてフォームを目立たせる */
-            border-radius: 8px;      /* 角を丸くする */
-            padding: 24px;           /* ボックス内側の余白 */
-            margin-bottom: 32px;     /* ボックスの下に余白 */
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* 軽い影を付けて浮いて見せる */
+            background: #ffffff;                  /* 白背景 */
+            border: 1px solid #e0e0e0;            /* 薄いグレーの枠線 */
+            border-radius: 12px;                  /* 大きめの角丸でモダンに */
+            padding: 28px;                        /* 内側の余白 */
+            margin-bottom: 24px;                  /* 下の要素との余白 */
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 6px 16px rgba(0,0,0,0.04); /* 2層の影で立体感を出す */
         }
 
-        /* 各入力項目（ラベル＋入力欄）を縦に並べるスタイル */
+        /* 各入力項目（ラベル＋入力欄）のコンテナ */
         .form-group {
-            display: flex;           /* フレックスボックスで並べる */
-            flex-direction: column;  /* 縦方向に並べる */
-            margin-bottom: 16px;     /* 項目間の余白 */
+            display: flex;          /* フレックスで縦積みにする */
+            flex-direction: column; /* 縦方向に並べる */
+            margin-bottom: 18px;    /* 項目間の余白 */
         }
 
         /* ラベルのスタイル */
         label {
-            font-weight: bold;       /* ラベルを太字にして見やすくする */
-            margin-bottom: 6px;      /* ラベルと入力欄の間に少し余白 */
-            color: #333;             /* 文字色をやや濃いグレーに */
+            font-weight: 600;          /* セミボールドで読みやすく */
+            font-size: 0.875rem;       /* やや小さめにして見出し感を出す */
+            margin-bottom: 6px;        /* 入力欄との間の余白 */
+            color: #111111;            /* ほぼ黒の文字色 */
+            letter-spacing: 0.01em;    /* 文字間隔を微調整 */
         }
 
-        /* テキスト入力・日付入力・時刻入力・セレクトボックスの共通スタイル
-           datetime-local はiOS Safariで正しく動作しないため
-           type="date" と type="time" に分割して使う */
+        /* テキスト・日付・時刻・セレクトの共通スタイル
+           ② iOS Safari対応：datetime-localは使わずdate/timeを分割して使う */
         input[type="text"],
-        input[type="date"],  /* 日付ピッカー（iOS/Android/PCで確実に動作する） */
-        input[type="time"],  /* 時刻ピッカー（iOS/Android/PCで確実に動作する） */
+        input[type="date"],   /* 日付ピッカー（iOS/Android/PCで確実に動作する） */
+        input[type="time"],   /* 時刻ピッカー（iOS/Android/PCで確実に動作する） */
         select {
-            padding: 8px 10px;       /* 入力欄の内側の余白 */
-            border: 1px solid #ccc;  /* 細いグレーの枠線 */
-            border-radius: 4px;      /* 角を少し丸くする */
-            font-size: 1rem;         /* 文字サイズを標準に */
-            width: 100%;             /* 横幅いっぱいに広げる */
-            box-sizing: border-box;  /* paddingを含めて幅を計算 */
+            padding: 10px 14px;          /* 入力しやすい余白 */
+            border: 1.5px solid #e0e0e0; /* グレーの枠線 */
+            border-radius: 6px;          /* 角を丸くする */
+            font-size: 1rem;             /* 文字サイズを標準に */
+            width: 100%;                 /* 横幅いっぱいに広げる */
+            background: #ffffff;         /* 白背景 */
+            color: #111111;              /* テキスト色 */
+            -webkit-appearance: none;    /* iOSのデフォルトスタイルを無効化して統一する */
+            appearance: none;            /* ブラウザデフォルトスタイルを無効化する */
+            transition: border-color 0.15s; /* フォーカス時の枠線変化をなめらかにする */
         }
 
-        /* 期限フォームの日付欄と時刻欄を横並びにするコンテナ */
+        /* フォーカス時は枠線を黒にして入力中を明確に示す */
+        input:focus,
+        select:focus {
+            border-color: #000000; /* 黒枠でフォーカスを示す */
+            outline: none;         /* ブラウザデフォルトのoutlineを消す */
+        }
+
+        /* ② 日付・時刻を横並びにするコンテナ（iOS Safariのため分割入力を採用） */
         .deadline-group {
             display: flex; /* 日付欄と時刻欄を横並びにする */
-            gap: 8px;      /* 入力欄どうしの間に余白を入れる */
+            gap: 10px;     /* 入力欄どうしの間に余白を入れる */
         }
 
-        /* .deadline-group内の入力欄はflexで幅を制御するため
-           共通スタイルのwidth:100%をwidth:autoで上書きする */
-        .deadline-group input {
-            width: auto;   /* 共通スタイルのwidth:100%をリセットしてflexに幅を任せる */
-            flex: 1;       /* 余白を均等に分け合う（個別のflex値で上書き可能） */
-            min-width: 0;  /* flexアイテムがコンテナ幅を超えないようにする */
+        /* 日付・時刻の各フィールドをラベル付きで縦積みにするラッパー */
+        .deadline-field {
+            flex: 1;           /* 均等に幅を分ける */
+            min-width: 0;      /* flexアイテムがはみ出さないようにする */
+            display: flex;     /* 入力欄と小ラベルを縦積みにする */
+            flex-direction: column; /* 縦方向に並べる */
         }
 
-        /* 日付欄は時刻欄より文字数が多いため広めに確保する（例：2026/05/27 vs 23:59） */
-        .deadline-group input[type="date"] {
-            flex: 2; /* 日付欄：時刻欄 ＝ 2：1 の比率で横幅を分割する */
+        /* 日付欄は時刻欄より横幅を広く取る（YYYY/MM/DDはHH:MMより文字が多い） */
+        .deadline-field:first-child { flex: 2; }
+
+        /* .deadline-field内の入力欄は全幅を使う */
+        .deadline-field input { width: 100%; }
+
+        /* 入力欄の下に表示する補助ラベル（「日付」「時刻（任意）」） */
+        .deadline-sub-label {
+            font-size: 0.7rem;   /* 小さめのフォントサイズ */
+            color: #9e9e9e;      /* 薄いグレーで補足情報と示す */
+            margin-top: 4px;     /* 入力欄との間に少し余白を入れる */
         }
 
-        /* 登録ボタン（および更新ボタン）の基本スタイル */
+        /* ===== ボタン共通スタイル（黒背景・白文字） ===== */
         button {
-            padding: 10px 24px;         /* ボタン内側の余白 */
-            background-color: #4a90e2;  /* ボタンの背景色（青系） */
-            color: #fff;                /* ボタン文字を白に */
-            border: none;               /* 枠線をなくす */
-            border-radius: 4px;         /* 角を丸くする */
-            font-size: 1rem;            /* 文字サイズ */
-            cursor: pointer;            /* カーソルをポインターにしてクリック可能と示す */
-            touch-action: manipulation; /* タップ時の300ms遅延を除去してタッチ反応を即時にする */
+            padding: 11px 24px;          /* ボタン内側の余白 */
+            background-color: #000000;   /* 黒背景 */
+            color: #ffffff;              /* 白文字 */
+            border: none;                /* 枠線をなくす */
+            border-radius: 6px;          /* 角を丸くする */
+            font-size: 0.95rem;          /* 文字サイズ */
+            font-weight: 600;            /* セミボールドにする */
+            cursor: pointer;             /* カーソルをポインターにする */
+            touch-action: manipulation;  /* タップ時の300ms遅延を除去する */
+            letter-spacing: 0.02em;      /* 文字間隔を微調整 */
+            transition: background 0.15s; /* ホバー時の背景変化をなめらかにする */
         }
 
-        /* ボタンにマウスを乗せたときの色変化 */
-        button:hover {
-            background-color: #357abd; /* 少し濃い青に変える */
-        }
+        /* ===== 課題リストカード ===== */
 
-        /* 課題リストを囲むボックスのスタイル */
+        /* 課題一覧を囲むカード */
         .list-box {
-            background: #fff;        /* 背景を白に */
-            border-radius: 8px;      /* 角を丸くする */
-            padding: 24px;           /* 内側の余白 */
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* 軽い影 */
+            background: #ffffff;                  /* 白背景 */
+            border: 1px solid #e0e0e0;            /* 薄いグレーの枠線 */
+            border-radius: 12px;                  /* 角丸 */
+            padding: 24px;                        /* 内側の余白 */
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 6px 16px rgba(0,0,0,0.04); /* 立体感のある影 */
         }
 
-        /* 課題リストの箇条書きスタイル */
+        /* ページ・セクション見出し */
+        h1 {
+            font-size: 1.3rem;       /* 見出しサイズ */
+            font-weight: 700;        /* ボールド */
+            color: #111111;          /* ほぼ黒 */
+            margin: 0 0 20px 0;      /* 上余白なし、下に余白 */
+            letter-spacing: -0.01em; /* 見出しは字間を少し詰める */
+        }
+
+        h2 {
+            font-size: 1.1rem;       /* サブ見出しサイズ */
+            font-weight: 700;        /* ボールド */
+            color: #111111;          /* ほぼ黒 */
+            margin: 0 0 20px 0;      /* 上余白なし、下に余白 */
+            letter-spacing: -0.01em; /* 字間を少し詰める */
+        }
+
+        /* 課題リストの箇条書きリセット */
         #taskList {
-            list-style: none;        /* デフォルトの黒丸を消す */
-            padding: 0;              /* 左側のインデントをなくす */
-            margin: 0;               /* 余白をリセット */
+            list-style: none; /* デフォルトの黒丸を消す */
+            padding: 0;       /* 左のインデントをなくす */
+            margin: 0;        /* 余白をリセットする */
         }
 
         /* 各課題アイテムのスタイル */
         #taskList li {
-            display: flex;                   /* 課題情報とボタン群を横並びにする */
-            justify-content: space-between;  /* 情報を左端、ボタンを右端に配置する */
-            align-items: flex-start;         /* 縦方向は上揃えにする */
-            border-bottom: 1px solid #eee;   /* アイテム下に区切り線 */
-            border-left: 4px solid transparent; /* 科目カラーバー領域を確保する（JSで色を設定する） */
-            padding: 12px 0;                 /* 上下の余白 */
-            line-height: 1.6;                /* 行間を広くして読みやすくする */
+            display: flex;                        /* 課題情報とボタン群を横並びにする */
+            justify-content: space-between;       /* 情報を左端、ボタンを右端に配置する */
+            align-items: flex-start;              /* 縦方向は上揃えにする */
+            border-bottom: 1px solid #f0f0f0;     /* 細い区切り線 */
+            border-left: 4px solid transparent;   /* 科目カラーバー用の領域を確保する（JSで色を設定） */
+            padding: 14px 0 14px 12px;            /* 上下と左に余白（左のpadding=カラーバーとの間隔） */
+            line-height: 1.6;                     /* 行間を広くして読みやすくする */
         }
 
-        /* ===================================================================
-           カウントダウン表示（「あと〇日〇時間」）
-           =================================================================== */
+        /* 最後のアイテムは区切り線を非表示にする */
+        #taskList li:last-child { border-bottom: none; }
+
+        /* ===== カウントダウン表示（「あと〇日〇時間」） ===== */
 
         /* カウントダウンテキスト共通スタイル */
         .task-countdown {
-            font-size: 0.82rem;  /* やや小さめのフォントサイズにする */
-            font-weight: bold;   /* 太字にして目立たせる */
-            margin-top: 4px;     /* 期限テキストとの間に余白を取る */
+            font-size: 0.8rem;    /* 小さめのフォントサイズ */
+            font-weight: 700;     /* ボールドで目立たせる */
+            margin-top: 4px;      /* 期限テキストとの間に余白を取る */
+            display: inline-block; /* インラインで表示する */
         }
 
-        .countdown-urgent  { color: #e05555; } /* 3日以内：赤字 */
-        .countdown-warning { color: #f0a500; } /* 7日以内：オレンジ */
+        .countdown-urgent  { color: #e53935; } /* 3日以内：赤 */
+        .countdown-warning { color: #fb8c00; } /* 7日以内：オレンジ */
         .countdown-normal  { color: #43a047; } /* それ以外：緑 */
-        .countdown-overdue { color: #aaa; }    /* 期限切れ：グレー */
+        .countdown-overdue { color: #bdbdbd; } /* 期限切れ：薄いグレー */
 
-        /* リストの最後のアイテムは区切り線を表示しない */
-        #taskList li:last-child {
-            border-bottom: none;
-        }
-
-        /* 課題情報（名前・期限・提出方法）をまとめるコンテナ */
+        /* 課題情報（授業名・課題名・期限など）をまとめるコンテナ */
         .task-info {
-            flex: 1; /* ボタン群以外の横幅をすべて使う */
+            flex: 1;    /* ボタン群以外の横幅をすべて使う */
+            min-width: 0; /* flexアイテムがはみ出さないようにする */
         }
 
-        /* 編集・削除ボタンをまとめるコンテナ */
+        /* 完了・編集・削除ボタンをまとめるコンテナ */
         .btn-group {
             display: flex;           /* ボタンを横並びにする */
             flex-direction: row;     /* 横方向に並べる */
             align-items: flex-start; /* 縦方向は上揃えにする */
             flex-shrink: 0;          /* ボタン群が縮まないようにする */
-            margin-left: 12px;       /* 課題情報との間に余白を取る */
+            margin-left: 12px;       /* 課題情報テキストとの間に余白を取る */
+            gap: 6px;                /* ボタン間の隙間 */
         }
 
-        /* 編集ボタンのスタイル（オレンジ系で編集操作を連想させる） */
-        .btn-edit {
-            padding: 6px 14px;           /* ボタン内側の余白 */
-            background-color: #f0a500;   /* オレンジ系の背景色で編集を連想させる */
-            color: #fff;                 /* ボタン文字を白に */
-            border: none;                /* 枠線をなくす */
-            border-radius: 4px;          /* 角を丸くする */
-            font-size: 0.85rem;          /* やや小さめの文字サイズ */
-            cursor: pointer;             /* カーソルをポインターにしてクリック可能と示す */
-            margin-right: 6px;           /* 削除ボタンとの間に余白を取る */
-        }
+        /* ===== 課題アイテム内の各ボタン（小型サイズ） ===== */
 
-        /* 編集ボタンにマウスを乗せたときの色変化 */
-        .btn-edit:hover {
-            background-color: #c8860a;   /* 少し濃いオレンジに変える */
-        }
-
-        /* 削除ボタンのスタイル（赤系カラーで危険操作を示す） */
-        .btn-delete {
-            padding: 6px 14px;           /* ボタン内側の余白 */
-            background-color: #e05555;   /* 赤系の背景色で削除を連想させる */
-            color: #fff;                 /* ボタン文字を白に */
-            border: none;                /* 枠線をなくす */
-            border-radius: 4px;          /* 角を丸くする */
-            font-size: 0.85rem;          /* やや小さめの文字サイズ */
-            cursor: pointer;             /* カーソルをポインターにしてクリック可能と示す */
-        }
-
-        /* 削除ボタンにマウスを乗せたときの色変化 */
-        .btn-delete:hover {
-            background-color: #c03030;   /* 少し濃い赤に変える */
-        }
-
-        /* 完了ボタンのスタイル（緑系で達成感を演出する） */
+        /* 完了ボタン（黒背景・白文字） */
         .btn-done {
-            padding: 6px 14px;           /* ボタン内側の余白 */
-            background-color: #4caf50;   /* 緑系の背景色で「完了」を連想させる */
-            color: #fff;                 /* ボタン文字を白に */
-            border: none;                /* 枠線をなくす */
+            padding: 5px 12px;           /* ボタン内側の余白（小型） */
+            background: #000000;         /* 黒背景 */
+            color: #ffffff;              /* 白文字 */
+            border: none;                /* 枠線なし */
             border-radius: 4px;          /* 角を丸くする */
-            font-size: 0.85rem;          /* やや小さめの文字サイズ */
-            cursor: pointer;             /* カーソルをポインターにしてクリック可能と示す */
-            margin-right: 6px;           /* 隣のボタンとの間に余白を取る */
-            touch-action: manipulation;  /* タップ時の300ms遅延を除去する */
+            font-size: 0.78rem;          /* 小さめの文字サイズ */
+            font-weight: 600;            /* セミボールド */
+            cursor: pointer;             /* カーソルをポインターにする */
+            touch-action: manipulation;  /* タップ遅延を除去する */
+            white-space: nowrap;         /* テキストを折り返さない */
+            transition: background 0.15s; /* ホバー変化をなめらかにする */
         }
 
-        /* 未完了ボタンのスタイル（グレー系で「元に戻す」ことを示す） */
+        /* 未完了ボタン（グレー背景・黒文字：「元に戻す」操作を示す） */
         .btn-undone {
-            padding: 6px 14px;           /* ボタン内側の余白 */
-            background-color: #9e9e9e;   /* グレー系の背景色で完了取り消しを示す */
-            color: #fff;                 /* ボタン文字を白に */
-            border: none;                /* 枠線をなくす */
+            padding: 5px 12px;           /* ボタン内側の余白 */
+            background: #f0f0f0;         /* ライトグレーの背景 */
+            color: #555555;              /* ダークグレーの文字色 */
+            border: none;                /* 枠線なし */
             border-radius: 4px;          /* 角を丸くする */
-            font-size: 0.85rem;          /* やや小さめの文字サイズ */
-            cursor: pointer;             /* カーソルをポインターにしてクリック可能と示す */
-            margin-right: 6px;           /* 隣のボタンとの間に余白を取る */
-            touch-action: manipulation;  /* タップ時の300ms遅延を除去する */
+            font-size: 0.78rem;          /* 小さめの文字サイズ */
+            font-weight: 600;            /* セミボールド */
+            cursor: pointer;             /* カーソルをポインターにする */
+            touch-action: manipulation;  /* タップ遅延を除去する */
+            white-space: nowrap;         /* テキストを折り返さない */
+            transition: background 0.15s; /* ホバー変化をなめらかにする */
         }
 
-        /* 授業名を小さめに表示するスタイル（課題名の上に置く補足情報） */
+        /* 編集ボタン（アウトライン：白背景・黒枠・黒文字） */
+        .btn-edit {
+            padding: 5px 12px;            /* ボタン内側の余白 */
+            background: #ffffff;          /* 白背景でアクションの差別化 */
+            color: #000000;               /* 黒文字 */
+            border: 1.5px solid #000000;  /* 黒枠線でアウトラインスタイルにする */
+            border-radius: 4px;           /* 角を丸くする */
+            font-size: 0.78rem;           /* 小さめの文字サイズ */
+            font-weight: 600;             /* セミボールド */
+            cursor: pointer;              /* カーソルをポインターにする */
+            touch-action: manipulation;   /* タップ遅延を除去する */
+            white-space: nowrap;          /* テキストを折り返さない */
+            transition: background 0.15s; /* ホバー変化をなめらかにする */
+        }
+
+        /* 削除ボタン（薄いアウトライン：白背景・グレー枠・グレー文字） */
+        .btn-delete {
+            padding: 5px 12px;           /* ボタン内側の余白 */
+            background: #ffffff;         /* 白背景 */
+            color: #555555;              /* ダークグレーの文字色 */
+            border: 1.5px solid #e0e0e0; /* 薄いグレー枠線で控えめに示す */
+            border-radius: 4px;          /* 角を丸くする */
+            font-size: 0.78rem;          /* 小さめの文字サイズ */
+            font-weight: 600;            /* セミボールド */
+            cursor: pointer;             /* カーソルをポインターにする */
+            touch-action: manipulation;  /* タップ遅延を除去する */
+            white-space: nowrap;         /* テキストを折り返さない */
+            transition: background 0.15s, border-color 0.15s; /* ホバー変化をなめらかにする */
+        }
+
+        /* ===== 課題テキスト ===== */
+
+        /* 授業名を小さめに表示する（科目色はJSのinlineスタイルで設定） */
         .task-subject {
-            font-size: 0.8rem;       /* 課題名より小さいフォントサイズにする */
-            color: #888;             /* やや薄いグレーで目立ちすぎないようにする */
-            margin-bottom: 2px;      /* 課題名との間に少し余白を入れる */
+            font-size: 0.75rem;      /* 課題名より小さいフォントサイズ */
+            font-weight: 600;        /* セミボールドにする */
+            margin-bottom: 2px;      /* 課題名との間に余白を入れる */
+            letter-spacing: 0.01em;  /* 文字間隔を微調整 */
         }
 
-        /* 課題名を強調表示するスタイル */
+        /* 課題名のスタイル */
         .task-name {
-            font-size: 1.1rem;       /* 課題名をやや大きく */
-            font-weight: bold;       /* 太字にする */
-            color: #222;             /* 濃い文字色 */
+            font-size: 1rem;    /* 標準フォントサイズ */
+            font-weight: 700;   /* ボールドで強調する */
+            color: #111111;     /* ほぼ黒 */
         }
 
-        /* 完了済みアイテム全体のスタイル（<li>に付与するクラス） */
+        /* 期限・提出方法などのサブ情報 */
+        .task-detail {
+            font-size: 0.82rem; /* 小さめのフォントサイズ */
+            color: #777777;     /* 薄いグレーの文字色 */
+            margin-top: 3px;    /* 上に少し余白を取る */
+        }
+
+        /* 課題が0件のときのメッセージ */
+        .empty-message {
+            color: #bdbdbd;      /* 薄いグレー文字 */
+            font-style: italic;  /* 斜体にして補足情報と示す */
+            padding: 12px 0;     /* 上下に余白 */
+        }
+
+        /* 完了済みアイテム全体のスタイル */
         #taskList li.task-completed {
-            background-color: #efefef; /* 背景をグレーにして完了済みと一目でわかるようにする */
-            border-radius: 4px;        /* 背景色が付いたので角を少し丸くする */
-            padding-left: 8px;         /* 背景色の内側に余白を追加する */
-            padding-right: 8px;        /* 背景色の内側に余白を追加する */
+            background-color: #f8f8f8; /* ライトグレー背景で完了済みを示す */
+            border-radius: 6px;        /* 背景色が付いたので角を丸くする */
+            padding-right: 8px;        /* 右側にも余白を追加する */
         }
 
-        /* 完了済みアイテムの課題名に取り消し線を入れて完了感を出す */
+        /* 完了済みアイテムの課題名に取り消し線を入れる */
         #taskList li.task-completed .task-name {
             text-decoration: line-through; /* 取り消し線を入れる */
-            color: #999;                   /* 文字色を薄くして完了済みと区別する */
-        }
-
-        /* 期限・提出方法などのサブ情報のスタイル */
-        .task-detail {
-            font-size: 0.9rem;       /* やや小さめのフォント */
-            color: #666;             /* 薄いグレーの文字色 */
-            margin-top: 4px;         /* 上に少し余白 */
-        }
-
-        /* まだ課題が登録されていない場合のメッセージ */
-        .empty-message {
-            color: #aaa;             /* 薄いグレー文字 */
-            font-style: italic;      /* 斜体にして区別 */
+            color: #bdbdbd;                /* 薄いグレーで完了済みを示す */
         }
 
         /* =======================================================
-           レスポンシブ対応：画面幅600px以下のスマホ向け調整
-           max-width: 600px はほぼすべてのスマートフォンの横幅に該当する
+           スマホ向けレスポンシブ（max-width: 600px）
            ======================================================= */
         @media (max-width: 600px) {
 
-            /* 上下余白を縮小してスマホの縦スクロール量を減らす */
+            /* 上下余白を縮小してスクロール量を減らす */
             body {
-                margin: 16px auto; /* PC(40px)→スマホ(16px)に縮小する */
-                padding: 0 12px;   /* 左右余白をPC(20px)→スマホ(12px)に縮小する */
+                margin: 12px auto; /* PC(32px)→スマホ(12px)に縮小する */
+                padding: 0 12px;   /* 左右余白もスマホ向けに縮小する */
             }
 
-            /* フォームボックスの内側余白を縮小してコンパクトにする */
+            /* フォームカードの余白を縮小する */
             .form-box {
-                padding: 16px;       /* PC(24px)→スマホ(16px)に縮小する */
-                margin-bottom: 16px; /* PC(32px)→スマホ(16px)に縮小する */
+                padding: 18px;       /* PC(28px)→スマホ(18px)に縮小する */
+                margin-bottom: 16px; /* PC(24px)→スマホ(16px)に縮小する */
             }
 
-            /* 課題一覧ボックスの内側余白も縮小する */
-            .list-box {
-                padding: 16px; /* PC(24px)→スマホ(16px)に縮小する */
-            }
+            /* リストカードの余白も縮小する */
+            .list-box { padding: 16px; }
 
-            /* 見出しのフォントサイズを少し小さくしてスマホ幅に収める */
-            h1 {
-                font-size: 1.4rem; /* PC既定(2rem前後)より小さくして横幅に収める */
-            }
-            h2 {
-                font-size: 1.2rem; /* PC既定(1.5rem前後)より小さくして横幅に収める */
-            }
+            /* 見出しサイズをスマホ幅に合わせて縮小する */
+            h1 { font-size: 1.2rem; }
+            h2 { font-size: 1rem; }
 
-            /* 入力欄のフォントサイズを16px以上にする
-               iOSは入力欄のフォントが16px未満だとタップ時に画面を自動ズームするため
-               明示的に16pxを指定してズームを防ぐ */
+            /* ② iOSの自動ズーム防止：フォントサイズを16px以上にする */
             input[type="text"],
-            input[type="date"],  /* 日付入力欄（datetime-localの代替） */
-            input[type="time"],  /* 時刻入力欄（datetime-localの代替） */
+            input[type="date"],
+            input[type="time"],
             select {
-                font-size: 16px;    /* iOSの自動ズームを防ぐために必要な最低フォントサイズ */
-                padding: 10px 12px; /* タップ時に指が当たりやすいよう縦paddingを拡大する */
+                font-size: 16px;    /* 16px未満だとiOSが自動ズームするため必須 */
+                padding: 11px 12px; /* タップしやすい縦paddingに拡大する */
             }
 
-            /* スマホでは日付欄と時刻欄を縦並びに切り替えて横幅を最大限活用する */
+            /* ② スマホでは日付・時刻欄を縦並びにして横幅を最大限活用する */
             .deadline-group {
                 flex-direction: column; /* 横並び→縦並びに切り替える */
+                gap: 8px;              /* 縦並び時の間隔 */
             }
 
-            /* 縦並び時は各入力欄を横幅いっぱいに広げる */
-            .deadline-group input {
-                width: 100%; /* 縦並びなので全幅に広げる */
-                flex: none;  /* flex比率を無効にしてwidth:100%で幅を決める */
+            /* 縦並び時は各フィールドを全幅に広げる */
+            .deadline-field {
+                flex: none !important; /* flex比率を無効にする */
+                width: 100%;           /* 全幅に広げる */
             }
 
-            /* 登録・更新ボタンを横幅いっぱいに広げてどこでもタップしやすくする */
+            /* 登録・更新ボタンを全幅に広げてタップしやすくする */
             #submitBtn {
-                width: 100%;     /* 横幅をフォームボックス全体に広げる */
-                padding: 14px 0; /* 縦paddingを増やして44px以上のタッチ領域を確保する */
+                width: 100%;     /* 全幅に広げる */
+                padding: 14px 0; /* 縦paddingを大きくして44px以上のタッチ領域を確保する */
             }
 
-            /* 課題アイテムのレイアウトを縦並びに切り替える
-               横幅が狭いスマホでも課題情報とボタン群が重ならないようにする */
+            /* スマホでは課題情報とボタン群を縦並びにする */
             #taskList li {
-                flex-direction: column;  /* 横並び→縦並び（上：課題情報、下：ボタン群）に切り替える */
-                align-items: flex-start; /* 各子要素を左端に揃える */
+                flex-direction: column;  /* 横並び→縦並びに切り替える */
+                align-items: flex-start; /* 左端に揃える */
             }
 
-            /* ボタン群を課題情報の下に移動する（縦並びレイアウト対応） */
+            /* ボタン群を課題情報の下に配置する */
             .btn-group {
-                margin-left: 0;  /* 縦並び時は左マージン不要なのでリセットする */
-                margin-top: 8px; /* 課題情報テキストとの間に余白を入れる */
-                width: 100%;     /* 横幅をアイテム全体に広げて編集・削除ボタンを並べる */
+                margin-left: 0;  /* 縦並び時は左マージン不要 */
+                margin-top: 10px; /* 課題情報との間に余白を入れる */
+                width: 100%;     /* 全幅に広げる */
+                gap: 6px;        /* ボタン間の隙間 */
             }
 
-            /* 編集ボタンをタッチしやすいサイズに拡大する */
-            .btn-edit {
-                flex: 1;            /* .btn-group内の横幅を削除ボタンと均等に分ける */
+            /* 各課題ボタンを均等幅でタッチしやすく拡大する */
+            .btn-done, .btn-undone, .btn-edit, .btn-delete {
+                flex: 1;            /* 均等に横幅を分ける */
                 padding: 11px 0;    /* 縦paddingを増やして44px以上のタッチ領域を確保する */
-                text-align: center; /* ボタンのテキストを中央に揃える */
-                min-height: 44px;   /* タッチターゲットの最小高さ（Appleガイドライン：44px） */
-                font-size: 0.95rem; /* 読みやすいサイズに調整する */
-            }
-
-            /* 削除ボタンも同様にタッチしやすいサイズに拡大する */
-            .btn-delete {
-                flex: 1;            /* .btn-group内の横幅を編集ボタンと均等に分ける */
-                padding: 11px 0;    /* 縦paddingを増やして44px以上のタッチ領域を確保する */
-                text-align: center; /* ボタンのテキストを中央に揃える */
-                min-height: 44px;   /* タッチターゲットの最小高さ（Appleガイドライン：44px） */
-                font-size: 0.95rem; /* 読みやすいサイズに調整する */
-            }
-
-            /* 完了ボタンもタッチしやすいサイズに拡大する */
-            .btn-done {
-                flex: 1;            /* .btn-group内の横幅を均等に分ける */
-                padding: 11px 0;    /* 縦paddingを増やして44px以上のタッチ領域を確保する */
-                text-align: center; /* ボタンのテキストを中央に揃える */
-                min-height: 44px;   /* タッチターゲットの最小高さ（Appleガイドライン：44px） */
-                font-size: 0.95rem; /* 読みやすいサイズに調整する */
-            }
-
-            /* 未完了ボタンも同様にタッチしやすいサイズに拡大する */
-            .btn-undone {
-                flex: 1;            /* .btn-group内の横幅を均等に分ける */
-                padding: 11px 0;    /* 縦paddingを増やして44px以上のタッチ領域を確保する */
-                text-align: center; /* ボタンのテキストを中央に揃える */
-                min-height: 44px;   /* タッチターゲットの最小高さ（Appleガイドライン：44px） */
-                font-size: 0.95rem; /* 読みやすいサイズに調整する */
+                text-align: center; /* テキストを中央に揃える */
+                min-height: 44px;   /* Appleガイドラインの最小タッチターゲット高さ */
+                font-size: 0.85rem; /* 読みやすいサイズに調整する */
             }
         }
 
         /* =======================================================
-           ホバー効果をマウスを持つデバイス（PC等）のみに限定する
-           hover: hover  → 本物のホバーが使えるデバイス（マウスなど）
-           pointer: fine → 高精度ポインター（マウスカーソル等）を持つデバイス
-           スマホ・タブレットはこの条件に該当しないためホバー色変化は起こらない
+           ホバー効果（マウスを持つデバイス専用）
+           hover: hover → 本物のホバーが使えるデバイス
+           pointer: fine → 高精度ポインター（マウス等）を持つデバイス
+           スマホ・タブレットは対象外なのでホバー色変化は起こらない
            ======================================================= */
         @media (hover: hover) and (pointer: fine) {
-            button:hover {
-                background-color: #357abd; /* 登録・更新ボタンのホバー色（少し濃い青） */
-            }
-            .btn-edit:hover {
-                background-color: #c8860a; /* 編集ボタンのホバー色（少し濃いオレンジ） */
-            }
-            .btn-delete:hover {
-                background-color: #c03030; /* 削除ボタンのホバー色（少し濃い赤） */
-            }
-            .btn-done:hover {
-                background-color: #388e3c; /* 完了ボタンのホバー色（少し濃い緑） */
-            }
-            .btn-undone:hover {
-                background-color: #757575; /* 未完了ボタンのホバー色（少し濃いグレー） */
-            }
-            .cal-nav-btn:hover {
-                background-color: #357abd; /* 前月・翌月ボタンのホバー色 */
-            }
-            .cal-day:hover {
-                background-color: #f0f4ff; /* 日付セルのホバー背景色（薄い青） */
-            }
+            button:hover          { background: #222222; } /* 主要ボタンのホバー色 */
+            .btn-undone:hover     { background: #e0e0e0; } /* 未完了ボタンのホバー色 */
+            .btn-edit:hover       { background: #f5f5f5; } /* 編集ボタンのホバー色 */
+            .btn-delete:hover     { background: #f5f5f5; border-color: #555; color: #000; } /* 削除ボタンのホバー色 */
+            .cal-nav-btn:hover    { background: #f5f5f5 !important; } /* カレンダーナビボタンのホバー色 */
+            .cal-day:hover        { background: #f8f8f8; }  /* カレンダーセルのホバー色 */
+            .btn-settings:hover   { background: #222222; }  /* 設定ボタンのホバー色 */
+            .btn-method-add:hover { background: #222222; }  /* 追加ボタンのホバー色 */
+            .btn-method-delete:hover { background: #f5f5f5; border-color: #111; color: #000; } /* 削除ボタンのホバー色 */
         }
 
         /* ===================================================================
-           タブ切り替え：リスト表示とカレンダー表示を切り替えるタブUI
+           タブ切り替えUI（リスト / カレンダー）
            =================================================================== */
 
         /* タブボタン群のコンテナ */
         .tab-group {
-            display: flex;                 /* ボタンを横並びにする */
-            border-bottom: 2px solid #ddd; /* タブ下の区切り線（アクティブタブの下線で上書きされる） */
-            margin-bottom: 16px;           /* タブとコンテンツの間の余白 */
+            display: flex;                  /* ボタンを横並びにする */
+            border-bottom: 2px solid #e0e0e0; /* 区切り線（アクティブタブの下線で上書きされる） */
+            margin-bottom: 16px;            /* タブとコンテンツの間の余白 */
         }
 
         /* 各タブボタンの基本スタイル */
         .tab-btn {
-            flex: 1;                              /* 横幅を等分する */
-            padding: 12px 0;                      /* 上下余白でタップしやすくする */
-            background: none;                     /* 背景なし */
-            color: #999;                          /* 非アクティブ時の薄い文字色 */
-            border: none;                         /* 枠線をなくす */
-            border-bottom: 3px solid transparent; /* アクティブ時に色付き下線で上書きする */
-            margin-bottom: -2px;                  /* .tab-groupの区切り線に重ねてつなげる */
-            font-size: 1rem;                      /* 文字サイズ */
-            cursor: pointer;                      /* カーソルをポインターにする */
-            touch-action: manipulation;           /* タップ時の300ms遅延を除去する */
-            transition: color 0.15s, border-bottom-color 0.15s; /* 色変化をなめらかにする */
+            flex: 1;                               /* 横幅を等分する */
+            padding: 12px 0;                       /* 上下余白でタップしやすくする */
+            background: none;                      /* 背景なし */
+            color: #9e9e9e;                        /* 非アクティブは薄いグレー */
+            border: none;                          /* 枠線なし */
+            border-bottom: 3px solid transparent;  /* アクティブ時に上書きする下線用 */
+            margin-bottom: -2px;                   /* .tab-groupの区切り線と接続する */
+            font-size: 0.95rem;                    /* 文字サイズ */
+            font-weight: 600;                      /* セミボールド */
+            cursor: pointer;                       /* カーソルをポインターにする */
+            touch-action: manipulation;            /* タップ遅延を除去する */
+            letter-spacing: 0.01em;                /* 字間を微調整 */
+            transition: color 0.15s, border-bottom-color 0.15s; /* 切り替えをなめらかにする */
         }
 
-        /* アクティブなタブボタン */
+        /* アクティブなタブボタン（黒で強調） */
         .tab-btn.active {
-            color: #4a90e2;                   /* 青い文字色にして強調する */
-            font-weight: bold;                /* 太字にする */
-            border-bottom: 3px solid #4a90e2; /* 青い下線でアクティブと示す */
+            color: #000000;                    /* 黒文字で強調する */
+            font-weight: 700;                  /* ボールドにする */
+            border-bottom: 3px solid #000000; /* 黒下線でアクティブを示す */
         }
 
         /* ===================================================================
            カレンダーボックス
            =================================================================== */
 
-        /* カレンダー全体を囲むボックス（list-boxと同様のデザイン） */
+        /* カレンダー全体を囲むカード */
         .calendar-box {
-            background: #fff;                       /* 背景を白に */
-            border-radius: 8px;                     /* 角を丸くする */
-            padding: 20px;                          /* 内側の余白 */
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* 軽い影を付ける */
+            background: #ffffff;                  /* 白背景 */
+            border: 1px solid #e0e0e0;            /* 薄いグレーの枠線 */
+            border-radius: 12px;                  /* 角丸 */
+            padding: 20px;                        /* 内側の余白 */
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 6px 16px rgba(0,0,0,0.04); /* 立体感のある影 */
         }
 
-        /* カレンダーヘッダー（年月表示と前月・翌月ボタンの行） */
+        /* カレンダーヘッダー（年月タイトルと前後ボタン） */
         .cal-header {
-            display: flex;                   /* 横並びにする */
-            justify-content: space-between;  /* 両端に配置する */
-            align-items: center;             /* 縦方向を中央に揃える */
-            margin-bottom: 16px;             /* カレンダー本体との間の余白 */
+            display: flex;                  /* 横並びにする */
+            justify-content: space-between; /* 両端に配置する */
+            align-items: center;            /* 縦方向を中央に揃える */
+            margin-bottom: 16px;            /* グリッドとの間の余白 */
         }
 
         /* 年月タイトル（例：2026年6月） */
         .cal-title {
-            font-size: 1.15rem; /* やや大きめのフォントサイズ */
-            font-weight: bold;  /* 太字にする */
-            color: #333;        /* 文字色 */
+            font-size: 1.1rem;       /* タイトルサイズ */
+            font-weight: 700;        /* ボールド */
+            color: #111111;          /* ほぼ黒 */
+            letter-spacing: -0.01em; /* 字間を少し詰める */
         }
 
-        /* 前月・翌月ボタン */
+        /* 前月・翌月ナビゲーションボタン（アウトラインスタイル） */
         .cal-nav-btn {
-            padding: 6px 16px;           /* ボタン内側の余白 */
-            background-color: #4a90e2;   /* 青系の背景色 */
-            color: #fff;                 /* 文字を白に */
-            border: none;                /* 枠線をなくす */
-            border-radius: 4px;          /* 角を丸くする */
-            font-size: 1rem;             /* 文字サイズ */
-            cursor: pointer;             /* カーソルをポインターにする */
-            touch-action: manipulation;  /* タップ遅延を除去する */
+            padding: 6px 14px;            /* ボタン余白 */
+            background: #ffffff;          /* 白背景 */
+            color: #000000;               /* 黒文字 */
+            border: 1.5px solid #000000;  /* 黒枠線でアウトラインスタイル */
+            border-radius: 6px;           /* 角を丸くする */
+            font-size: 0.875rem;          /* 文字サイズ */
+            font-weight: 600;             /* セミボールド */
+            cursor: pointer;              /* カーソルをポインターにする */
+            touch-action: manipulation;   /* タップ遅延を除去する */
         }
 
-        /* 曜日ヘッダー行（日〜土の7列グリッド） */
+        /* 曜日ヘッダー行（日〜土） */
         .cal-weekdays {
-            display: grid;                         /* グリッドにする */
-            grid-template-columns: repeat(7, 1fr); /* 7等分する */
-            margin-bottom: 4px;                    /* グリッドとの間の余白 */
+            display: grid;                          /* グリッドにする */
+            grid-template-columns: repeat(7, 1fr);  /* 7等分する */
+            margin-bottom: 4px;                     /* グリッドとの間の余白 */
         }
 
         /* 各曜日ラベル */
         .cal-weekday {
-            text-align: center;  /* 中央寄せにする */
-            font-size: 0.8rem;   /* やや小さめのフォントサイズ */
-            font-weight: bold;   /* 太字にする */
-            padding: 4px 0;      /* 上下の余白 */
-            color: #555;         /* 文字色 */
+            text-align: center;   /* 中央寄せにする */
+            font-size: 0.75rem;   /* 小さめのフォントサイズ */
+            font-weight: 700;     /* ボールドにする */
+            padding: 6px 0;       /* 上下の余白 */
+            color: #555555;       /* ダークグレーの文字色 */
+            letter-spacing: 0.02em; /* 字間を微調整 */
         }
 
-        .cal-weekday:first-child { color: #e05555; } /* 日曜ラベルを赤にする */
-        .cal-weekday:last-child  { color: #4a90e2; } /* 土曜ラベルを青にする */
+        .cal-weekday:first-child { color: #e53935; } /* 日曜ラベルを赤にする（視認性のため維持） */
+        .cal-weekday:last-child  { color: #1e88e5; } /* 土曜ラベルを青にする（視認性のため維持） */
 
         /* カレンダー日付グリッド（6週×7日＝42マス） */
         .cal-grid {
             display: grid;                         /* グリッドにする */
             grid-template-columns: repeat(7, 1fr); /* 7等分する */
-            gap: 2px;                              /* セル間の隙間 */
+            gap: 3px;                              /* セル間の隙間 */
         }
 
         /* 各日付セル */
         .cal-day {
-            min-height: 80px;        /* セルの最小高さ */
-            border: 1px solid #eee;  /* 細いグレーの枠線 */
-            border-radius: 4px;      /* 角を少し丸くする */
+            min-height: 88px;        /* セルの最小高さ（PC用は余裕を持たせる） */
+            border: 1px solid #e0e0e0; /* グレーの枠線 */
+            border-radius: 6px;      /* 角を丸くする */
             padding: 4px;            /* セル内側の余白 */
             cursor: pointer;         /* クリック可能と示す */
             overflow: hidden;        /* セルからはみ出た内容を隠す */
-            box-sizing: border-box;  /* paddingを含めて幅を計算する */
+            background: #ffffff;     /* 白背景 */
+            transition: background 0.1s; /* ホバー変化をなめらかにする */
         }
 
         /* 前月・翌月の日付セルは薄く表示する */
@@ -504,16 +518,14 @@
             opacity: 0.5;              /* 不透明度を下げて目立たなくする */
         }
 
-        /* 今日の日付セルを枠線で強調する */
-        .cal-day.today {
-            border: 2px solid #4a90e2; /* 青い枠線で今日を示す */
-        }
+        /* 今日の日付セルを黒枠線で強調する */
+        .cal-day.today { border: 2px solid #000000; }
 
-        /* 日付番号のスタイル */
+        /* 日付番号の円形バッジ */
         .cal-day-num {
-            font-size: 0.8rem;        /* やや小さめのフォントサイズ */
-            font-weight: bold;        /* 太字にする */
-            margin-bottom: 2px;       /* タスクチップとの間の余白 */
+            font-size: 0.78rem;       /* 小さめのフォントサイズ */
+            font-weight: 700;         /* ボールドにする */
+            margin-bottom: 3px;       /* タスクチップとの間の余白 */
             width: 22px;              /* 円形にするための固定幅 */
             height: 22px;             /* 円形にするための固定高さ */
             display: flex;            /* テキストを中央配置するためflexにする */
@@ -521,66 +533,65 @@
             justify-content: center;  /* 横方向を中央に揃える */
             border-radius: 50%;       /* 円形にする */
             line-height: 1;           /* 行間を詰める */
-            color: #333;              /* 通常の文字色 */
+            color: #333333;           /* 通常の文字色 */
         }
 
-        /* 今日の日付番号を青い円で強調する */
+        /* 今日の日付番号を黒い円で強調する */
         .cal-day.today .cal-day-num {
-            background-color: #4a90e2; /* 青い背景の円 */
-            color: #fff;               /* 文字を白に */
+            background-color: #000000; /* 黒い背景の円 */
+            color: #ffffff;            /* 白文字 */
         }
 
-        /* 日曜の日付番号を赤にする（today優先のため:not(.today)で除外） */
-        .cal-day.sunday:not(.today) .cal-day-num { color: #e05555; }
+        /* 日曜の日付番号を赤にする（今日セルを除外） */
+        .cal-day.sunday:not(.today) .cal-day-num { color: #e53935; }
 
         /* 土曜の日付番号を青にする */
-        .cal-day.saturday:not(.today) .cal-day-num { color: #4a90e2; }
+        .cal-day.saturday:not(.today) .cal-day-num { color: #1e88e5; }
 
         /* 課題チップ（カレンダーセル内のミニラベル） */
         .cal-task {
-            font-size: 0.68rem;      /* 小さめのフォントサイズ */
-            padding: 2px 4px;        /* チップ内側の余白 */
+            font-size: 0.65rem;      /* 小さめのフォントサイズ */
+            padding: 2px 5px;        /* チップ内側の余白 */
             border-radius: 3px;      /* 角を丸くする */
             margin-bottom: 2px;      /* チップ間の余白 */
-            white-space: nowrap;     /* テキストを折り返さない */
-            overflow: hidden;        /* はみ出た文字を隠す */
-            text-overflow: ellipsis; /* はみ出た文字を「...」で省略する */
-            color: #fff;             /* 文字を白に */
+            white-space: nowrap;     /* テキストを折り返さない（PC用） */
+            overflow: hidden;        /* はみ出た文字を隠す（PC用） */
+            text-overflow: ellipsis; /* はみ出た文字を「...」で省略する（PC用） */
+            color: #ffffff;          /* 白文字（科目色の背景に合わせる） */
             display: block;          /* ブロック要素として縦に積む */
+            font-weight: 500;        /* ミディアムウェイト */
         }
 
-        .cal-task.urgent  { background-color: #e05555; } /* 3日以内：赤 */
-        .cal-task.warning { background-color: #f0a500; } /* 7日以内：オレンジ */
-        .cal-task.normal  { background-color: #4a90e2; } /* それ以外：青 */
-        .cal-task.done-task { opacity: 0.4; }             /* 完了済みは薄く表示する */
+        .cal-task.done-task { opacity: 0.4; } /* 完了済みは透明度を上げて薄く表示する */
 
         /* ===================================================================
-           日付クリックポップアップ
+           カレンダー日付クリックポップアップ
            =================================================================== */
 
-        /* 背景を暗くするオーバーレイ */
+        /* ポップアップ背景オーバーレイ */
         .cal-popup-overlay {
-            position: fixed;               /* 画面全体に固定表示する */
-            top: 0; left: 0;               /* 左上を起点にする */
-            width: 100%; height: 100%;     /* 画面全体を覆う */
-            background: rgba(0,0,0,0.45); /* 半透明の黒で背景を暗くする */
-            z-index: 100;                  /* ポップアップより下に重ねる */
+            position: fixed;              /* 画面全体に固定表示する */
+            top: 0; left: 0;              /* 左上を起点にする */
+            width: 100%; height: 100%;    /* 画面全体を覆う */
+            background: rgba(0,0,0,0.4); /* 半透明の黒で背景を暗くする */
+            z-index: 100;                 /* ポップアップより下に重ねる */
         }
 
         /* ポップアップ本体 */
         .cal-popup {
             position: fixed;                   /* 画面に固定表示する */
             top: 50%; left: 50%;               /* 中心点を画面中央に置く */
-            transform: translate(-50%, -50%);  /* 自身の半分だけずらして完全に中央にする */
-            background: #fff;                   /* 背景を白に */
-            border-radius: 8px;                 /* 角を丸くする */
-            padding: 24px;                      /* 内側の余白 */
-            min-width: 280px;                   /* 最小幅を確保する */
-            max-width: 90vw;                    /* 画面幅の90%を超えないようにする */
-            max-height: 80vh;                   /* 画面高さの80%を超えないようにする */
-            overflow-y: auto;                   /* 縦方向にスクロール可能にする */
-            z-index: 101;                       /* オーバーレイより上に重ねる */
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3); /* 影で浮き上がって見せる */
+            transform: translate(-50%, -50%);  /* 自身の半分ずらして完全に中央にする */
+            background: #ffffff;               /* 白背景 */
+            border: 1px solid #e0e0e0;         /* 薄いグレーの枠線 */
+            border-radius: 12px;               /* 角丸 */
+            padding: 24px;                     /* 内側の余白 */
+            min-width: 300px;                  /* 最小幅を確保する */
+            max-width: 90vw;                   /* 画面幅の90%を超えないようにする */
+            max-height: 80vh;                  /* 画面高さの80%を超えないようにする */
+            overflow-y: auto;                  /* 縦方向にスクロール可能にする */
+            z-index: 101;                      /* オーバーレイより上に重ねる */
+            box-shadow: 0 4px 32px rgba(0,0,0,0.18); /* 深い影で浮き上がって見せる */
         }
 
         /* ポップアップヘッダー（日付タイトルと閉じるボタン） */
@@ -589,82 +600,90 @@
             justify-content: space-between;  /* 両端に配置する */
             align-items: center;             /* 縦方向を中央に揃える */
             margin-bottom: 16px;             /* リストとの間の余白 */
-            font-size: 1.05rem;              /* やや大きめのフォントサイズ */
-            font-weight: bold;               /* 太字にする */
-            color: #333;                     /* 文字色 */
+            padding-bottom: 12px;            /* ボーダーとの間に余白 */
+            border-bottom: 1px solid #f0f0f0; /* ヘッダーとリストの区切り線 */
+            font-size: 1rem;                 /* フォントサイズ */
+            font-weight: 700;                /* ボールド */
+            color: #111111;                  /* ほぼ黒 */
         }
 
-        /* ポップアップの✕閉じるボタン */
+        /* ポップアップの閉じるボタン */
         .cal-popup-close {
             background: none;           /* 背景なし */
             border: none;               /* 枠線なし */
-            font-size: 1.3rem;          /* 文字サイズ */
+            font-size: 1.2rem;          /* 文字サイズ */
             cursor: pointer;            /* カーソルをポインターにする */
-            color: #888;                /* 薄いグレーの文字色 */
+            color: #9e9e9e;             /* 薄いグレーの文字色 */
             line-height: 1;             /* 行間を詰める */
             touch-action: manipulation; /* タップ遅延を除去する */
             padding: 4px 8px;           /* タップしやすいよう余白を確保する */
+            border-radius: 4px;         /* 角を丸くする */
         }
 
         /* ポップアップのタスクリスト */
         .cal-popup-list {
             list-style: none; /* 黒丸を消す */
-            padding: 0;       /* 左側インデントをなくす */
+            padding: 0;       /* 左インデントをなくす */
             margin: 0;        /* 余白をリセットする */
         }
 
-        /* ポップアップの各タスクアイテム */
+        /* ポップアップの各タスクアイテム（科目色はJSのinlineスタイルで設定） */
         .cal-popup-list li {
-            padding: 10px 14px; /* 内側の余白 */
-            border-radius: 6px; /* 角を丸くする */
+            padding: 12px 14px; /* 内側の余白 */
+            border-radius: 8px; /* 角を丸くする */
             margin-bottom: 8px; /* アイテム間の余白 */
-            color: #fff;        /* 文字を白に */
-            font-size: 0.9rem;  /* フォントサイズ */
+            color: #ffffff;     /* 白文字（科目色の背景に合わせる） */
+            font-size: 0.88rem; /* フォントサイズ */
             line-height: 1.6;   /* 行間を広くして読みやすくする */
         }
 
-        .cal-popup-list li.urgent  { background-color: #e05555; } /* 3日以内：赤 */
-        .cal-popup-list li.warning { background-color: #f0a500; } /* 7日以内：オレンジ */
-        .cal-popup-list li.normal  { background-color: #4a90e2; } /* それ以外：青 */
-        .cal-popup-list li.done-task { opacity: 0.6; }             /* 完了済みは少し薄く表示する */
+        .cal-popup-list li.done-task { opacity: 0.6; } /* 完了済みは少し薄く表示する */
 
         /* ポップアップに課題がない場合のメッセージ */
         .cal-popup-empty {
-            color: #aaa;         /* 薄いグレー */
-            font-style: italic;  /* 斜体にする */
+            color: #bdbdbd;      /* 薄いグレー文字 */
+            font-style: italic;  /* 斜体にして補足と示す */
             text-align: center;  /* 中央寄せにする */
-            padding: 12px 0;     /* 上下の余白 */
+            padding: 16px 0;     /* 上下の余白 */
+            font-size: 0.9rem;   /* フォントサイズ */
         }
 
-        /* カレンダーのスマホ向け追加調整 */
+        /* ===================================================================
+           ③ スマホ向けカレンダー改善
+           （セルを大きく・テキストを切らない・多課題日はスクロール可能にする）
+           =================================================================== */
         @media (max-width: 600px) {
             /* タブのフォントサイズをスマホ向けに調整する */
-            .tab-btn {
-                font-size: 0.9rem; /* PCより少し小さくする */
-            }
+            .tab-btn { font-size: 0.85rem; }
 
-            /* カレンダーの内側余白を縮小する */
-            .calendar-box {
-                padding: 12px; /* PC(20px)より縮小する */
-            }
+            /* カレンダーカードの余白を縮小する */
+            .calendar-box { padding: 12px; }
 
-            /* セルの最小高さをスマホ向けに縮小する */
+            /* ③ セルをPC(88px)より少し小さくしつつ、上限を設けてスクロール可能にする */
             .cal-day {
-                min-height: 52px; /* PC(80px)→スマホ(52px) */
-                padding: 2px;     /* 余白も縮小する */
+                min-height: 72px;  /* 最小高さ：スマホでも十分な表示領域を確保する */
+                max-height: 120px; /* 最大高さ：超えたらセル内スクロールで確認できる */
+                overflow-y: auto;  /* 課題が多い日はセル内スクロールを有効にする */
+                -webkit-overflow-scrolling: touch; /* iOSでのスムーズスクロールを有効にする */
+                padding: 3px;      /* 余白を縮小する */
             }
 
-            /* 日付番号を小さくする */
+            /* ③ 日付番号のサイズをスマホ向けに調整する */
             .cal-day-num {
-                font-size: 0.7rem; /* PCより小さくする */
-                width: 18px;       /* 幅を縮小する */
-                height: 18px;      /* 高さを縮小する */
+                font-size: 0.72rem; /* 小さくする */
+                width: 20px;        /* 幅を縮小する */
+                height: 20px;       /* 高さを縮小する */
             }
 
-            /* タスクチップをスマホ向けに縮小する */
+            /* ③ チップのテキストを折り返して全文を表示する（省略しない） */
             .cal-task {
-                font-size: 0.58rem; /* PCより小さくする */
-                padding: 1px 2px;   /* 余白を縮小する */
+                font-size: 0.6rem;   /* スマホ向けに小さくする */
+                padding: 2px 4px;    /* 余白を縮小する */
+                white-space: normal; /* 折り返しを許可して課題名が途中で切れないようにする */
+                overflow: visible;   /* テキストを隠さない */
+                text-overflow: clip; /* 省略記号(...)を無効にする */
+                word-break: break-all; /* 長い単語でも折り返す */
+                line-height: 1.3;    /* 折り返し時の行間を調整する */
             }
         }
 
@@ -674,28 +693,23 @@
 
         /* 設定ボタンを右端に配置するヘッダーエリア */
         .page-header {
-            display: flex;           /* フレックスボックスで横並びにする */
+            display: flex;             /* フレックスボックスで横並びにする */
             justify-content: flex-end; /* 設定ボタンを右端に寄せる */
-            margin-bottom: 12px;     /* 下のフォームボックスとの間に余白を取る */
+            margin-bottom: 14px;       /* フォームカードとの間に余白を取る */
         }
 
-        /* 設定ボタン本体 */
+        /* 設定ボタン本体（黒背景・白文字） */
         .btn-settings {
-            padding: 8px 18px;           /* ボタン内側の余白 */
-            background-color: #666;      /* グレー系の背景色で機能ボタンと区別する */
-            color: #fff;                 /* 文字を白に */
-            border: none;                /* 枠線をなくす */
-            border-radius: 4px;          /* 角を丸くする */
-            font-size: 0.9rem;           /* 文字サイズ */
+            padding: 8px 18px;           /* ボタン余白 */
+            background: #000000;         /* 黒背景 */
+            color: #ffffff;              /* 白文字 */
+            border: none;                /* 枠線なし */
+            border-radius: 6px;          /* 角を丸くする */
+            font-size: 0.875rem;         /* 文字サイズ */
+            font-weight: 600;            /* セミボールド */
             cursor: pointer;             /* カーソルをポインターにする */
             touch-action: manipulation;  /* タップ遅延を除去する */
-        }
-
-        /* 設定ボタンのホバー色（PCのみ） */
-        @media (hover: hover) and (pointer: fine) {
-            .btn-settings:hover {
-                background-color: #444; /* 少し濃いグレーにする */
-            }
+            letter-spacing: 0.02em;      /* 字間を微調整 */
         }
 
         /* ===================================================================
@@ -704,131 +718,138 @@
 
         /* 設定モーダルの背景オーバーレイ */
         .settings-overlay {
-            position: fixed;               /* 画面全体に固定表示する */
-            top: 0; left: 0;               /* 左上を起点にする */
-            width: 100%; height: 100%;     /* 画面全体を覆う */
-            background: rgba(0,0,0,0.45); /* 半透明の黒で背景を暗くする */
-            z-index: 200;                  /* カレンダーポップアップ(101)より上に重ねる */
+            position: fixed;              /* 画面全体に固定表示する */
+            top: 0; left: 0;              /* 左上を起点にする */
+            width: 100%; height: 100%;    /* 画面全体を覆う */
+            background: rgba(0,0,0,0.4); /* 半透明の黒 */
+            z-index: 200;                 /* カレンダーポップアップ(101)より上に重ねる */
         }
 
         /* 設定モーダル本体 */
         .settings-modal {
-            position: fixed;                    /* 画面に固定表示する */
-            top: 50%; left: 50%;                /* 中心点を画面中央に置く */
-            transform: translate(-50%, -50%);   /* 自身の半分だけずらして完全に中央にする */
-            background: #fff;                   /* 背景を白に */
-            border-radius: 8px;                 /* 角を丸くする */
-            padding: 24px;                      /* 内側の余白 */
-            min-width: 300px;                   /* 最小幅を確保する */
-            max-width: 92vw;                    /* 画面幅の92%を超えないようにする */
-            max-height: 80vh;                   /* 画面高さの80%を超えないようにする */
-            overflow-y: auto;                   /* 縦方向にスクロール可能にする */
-            z-index: 201;                       /* オーバーレイより上に重ねる */
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3); /* 影で浮き上がって見せる */
-            box-sizing: border-box;             /* paddingを含めて幅を計算する */
+            position: fixed;                   /* 画面に固定表示する */
+            top: 50%; left: 50%;               /* 中心点を画面中央に置く */
+            transform: translate(-50%, -50%);  /* 自身の半分ずらして完全に中央にする */
+            background: #ffffff;               /* 白背景 */
+            border: 1px solid #e0e0e0;         /* 薄いグレーの枠線 */
+            border-radius: 12px;               /* 角丸 */
+            padding: 28px;                     /* 内側の余白 */
+            min-width: 320px;                  /* 最小幅を確保する */
+            max-width: 92vw;                   /* 画面幅の92%を超えないようにする */
+            max-height: 82vh;                  /* 画面高さの82%を超えないようにする */
+            overflow-y: auto;                  /* 縦方向にスクロール可能にする */
+            z-index: 201;                      /* オーバーレイより上に重ねる */
+            box-shadow: 0 4px 32px rgba(0,0,0,0.18); /* 深い影で浮き上がって見せる */
+            box-sizing: border-box;            /* paddingを含めて幅を計算する */
         }
 
         /* 設定モーダルのヘッダー（タイトルと閉じるボタン） */
         .settings-header {
             display: flex;                   /* 横並びにする */
-            justify-content: space-between;  /* タイトルを左端、閉じるボタンを右端に配置する */
+            justify-content: space-between;  /* 両端に配置する */
             align-items: center;             /* 縦方向を中央に揃える */
-            margin-bottom: 20px;             /* モーダル内容との間の余白 */
-            font-size: 1.1rem;               /* やや大きめのフォントサイズ */
-            font-weight: bold;               /* 太字にする */
-            color: #333;                     /* 文字色 */
+            margin-bottom: 24px;             /* モーダル内容との間の余白 */
+            padding-bottom: 16px;            /* ボーダーとの間に余白 */
+            border-bottom: 1px solid #f0f0f0; /* ヘッダーと内容の区切り線 */
+            font-size: 1.05rem;              /* フォントサイズ */
+            font-weight: 700;                /* ボールド */
+            color: #111111;                  /* ほぼ黒 */
         }
 
-        /* 設定モーダルの✕閉じるボタン */
+        /* 設定モーダルの閉じるボタン */
         .settings-close {
             background: none;           /* 背景なし */
             border: none;               /* 枠線なし */
-            font-size: 1.3rem;          /* 文字サイズ */
+            font-size: 1.2rem;          /* 文字サイズ */
             cursor: pointer;            /* カーソルをポインターにする */
-            color: #888;                /* 薄いグレーの文字色 */
+            color: #9e9e9e;             /* 薄いグレーの文字色 */
             line-height: 1;             /* 行間を詰める */
             touch-action: manipulation; /* タップ遅延を除去する */
             padding: 4px 8px;           /* タップしやすいよう余白を確保する */
+            border-radius: 4px;         /* 角を丸くする */
         }
 
-        /* 提出方法リストの見出し */
+        /* 提出方法リストのセクション見出し */
         .settings-section-title {
-            font-size: 0.9rem;       /* やや小さめのフォントサイズ */
-            font-weight: bold;       /* 太字にする */
-            color: #555;             /* グレー文字 */
-            margin-bottom: 8px;      /* リストとの間の余白 */
+            font-size: 0.75rem;       /* 小さめのフォントサイズ */
+            font-weight: 700;         /* ボールドにする */
+            color: #777777;           /* グレー文字 */
+            margin-bottom: 8px;       /* リストとの間の余白 */
+            letter-spacing: 0.06em;   /* 字間を広げてキャプション風にする */
+            text-transform: uppercase; /* 大文字にしてセクション見出しらしく見せる */
         }
 
         /* 提出方法のリスト */
         .method-list {
-            list-style: none;      /* 黒丸を消す */
-            padding: 0;            /* 左インデントをなくす */
-            margin: 0 0 20px 0;    /* 下に余白を取る */
-            border: 1px solid #eee; /* リスト全体を枠で囲む */
-            border-radius: 6px;    /* 角を丸くする */
+            list-style: none;           /* 黒丸を消す */
+            padding: 0;                 /* 左インデントをなくす */
+            margin: 0 0 24px 0;         /* 下に余白を取る */
+            border: 1px solid #e0e0e0;  /* リスト全体を枠で囲む */
+            border-radius: 8px;         /* 角を丸くする */
+            overflow: hidden;           /* 角丸を子要素に適用するため */
         }
 
         /* 提出方法リストの各アイテム */
         .method-list li {
-            display: flex;                   /* 横並びにする */
-            justify-content: space-between;  /* 名前を左端、ボタンを右端に配置する */
-            align-items: center;             /* 縦方向を中央に揃える */
-            padding: 10px 14px;              /* 内側の余白 */
-            border-bottom: 1px solid #eee;   /* 区切り線 */
-            font-size: 0.95rem;              /* フォントサイズ */
+            display: flex;                  /* 横並びにする */
+            justify-content: space-between; /* 名前を左端、ボタンを右端に配置する */
+            align-items: center;            /* 縦方向を中央に揃える */
+            padding: 12px 16px;             /* 内側の余白 */
+            border-bottom: 1px solid #f0f0f0; /* 区切り線 */
+            font-size: 0.9rem;              /* フォントサイズ */
+            color: #111111;                 /* ほぼ黒 */
         }
 
-        /* 最後のアイテムの区切り線を消す */
-        .method-list li:last-child {
-            border-bottom: none;
-        }
+        .method-list li:last-child { border-bottom: none; }
 
-        /* 提出方法の削除ボタン */
+        /* 提出方法の削除ボタン（アウトラインスタイル） */
         .btn-method-delete {
-            padding: 4px 10px;           /* ボタン内側の余白 */
-            background-color: #e05555;   /* 赤系の背景色 */
-            color: #fff;                 /* 文字を白に */
-            border: none;                /* 枠線なし */
+            padding: 4px 10px;           /* ボタン余白 */
+            background: #ffffff;         /* 白背景 */
+            color: #555555;              /* ダークグレーの文字色 */
+            border: 1.5px solid #e0e0e0; /* 薄いグレーの枠線 */
             border-radius: 4px;          /* 角を丸くする */
-            font-size: 0.8rem;           /* 文字サイズ */
+            font-size: 0.78rem;          /* 文字サイズ */
+            font-weight: 600;            /* セミボールド */
             cursor: pointer;             /* カーソルをポインターにする */
             touch-action: manipulation;  /* タップ遅延を除去する */
             flex-shrink: 0;              /* 縮まないようにする */
             margin-left: 8px;            /* 名前テキストとの間に余白を取る */
         }
 
-        /* 提出方法が1件だけの場合は削除ボタンを無効化する（無効状態のスタイル） */
+        /* 削除ボタン無効状態 */
         .btn-method-delete:disabled {
-            opacity: 0.35;    /* 半透明にして使用不可を示す */
-            cursor: default;  /* ポインターを通常に戻す */
+            opacity: 0.3;    /* 半透明にして使用不可を示す */
+            cursor: default; /* ポインターを通常に戻す */
         }
 
         /* 提出方法の追加エリア（入力欄＋追加ボタン） */
         .method-add-row {
-            display: flex;  /* 入力欄とボタンを横並びにする */
-            gap: 8px;       /* 間に余白を取る */
+            display: flex; /* 入力欄とボタンを横並びにする */
+            gap: 8px;      /* 間に余白を取る */
         }
 
         /* 追加用テキスト入力欄 */
         .method-add-row input[type="text"] {
-            flex: 1;              /* 残りの横幅をすべて使う */
-            padding: 8px 10px;    /* 内側の余白 */
-            border: 1px solid #ccc; /* 枠線 */
-            border-radius: 4px;   /* 角を丸くする */
-            font-size: 1rem;      /* フォントサイズ */
+            flex: 1;               /* 残りの横幅をすべて使う */
+            padding: 10px 12px;    /* 内側の余白 */
+            border: 1.5px solid #e0e0e0; /* グレーの枠線 */
+            border-radius: 6px;    /* 角を丸くする */
+            font-size: 0.95rem;    /* フォントサイズ */
             box-sizing: border-box; /* paddingを含めて幅を計算する */
-            min-width: 0;         /* flexアイテムがはみ出さないようにする */
-            width: auto;          /* 共通スタイルのwidth:100%をリセットする */
+            min-width: 0;          /* flexアイテムがはみ出さないようにする */
+            width: auto;           /* 共通スタイルのwidth:100%をリセットする */
         }
 
-        /* 追加ボタン */
+        /* 追加ボタン（黒背景・白文字） */
         .btn-method-add {
-            padding: 8px 16px;           /* ボタン内側の余白 */
-            background-color: #4a90e2;   /* 青系の背景色 */
-            color: #fff;                 /* 文字を白に */
+            padding: 10px 18px;          /* ボタン余白 */
+            background: #000000;         /* 黒背景 */
+            color: #ffffff;              /* 白文字 */
             border: none;                /* 枠線なし */
-            border-radius: 4px;          /* 角を丸くする */
-            font-size: 0.9rem;           /* 文字サイズ */
+            border-radius: 6px;          /* 角を丸くする */
+            font-size: 0.875rem;         /* 文字サイズ */
+            font-weight: 600;            /* セミボールド */
             cursor: pointer;             /* カーソルをポインターにする */
             touch-action: manipulation;  /* タップ遅延を除去する */
             flex-shrink: 0;              /* 縮まないようにする */
@@ -842,7 +863,7 @@
             }
             .method-add-row input[type="text"],
             .btn-method-add {
-                width: 100%; /* 縦並び時は横幅いっぱいに広げる */
+                width: 100%; /* 縦並び時は全幅に広げる */
             }
         }
     </style>
@@ -876,8 +897,14 @@
         <div class="form-group">
             <label>期限 <span style="font-weight:normal; color:#999; font-size:0.85rem;">（時刻は任意）</span></label> <!-- for属性はinputが2つのため省略する -->
             <div class="deadline-group"> <!-- 日付欄と時刻欄を横並びにするコンテナ（スマホでは縦並び） -->
-                <input type="date" id="taskDeadlineDate"> <!-- 日付選択ピッカー（iOS/Android/PCで確実に動作する） -->
-                <input type="time" id="taskDeadlineTime"> <!-- 時刻選択ピッカー（未入力時は00:00として保存する） -->
+                <div class="deadline-field"> <!-- ② iOS Safari対応：日付フィールドをラベル付きラッパーで包む -->
+                    <input type="date" id="taskDeadlineDate"> <!-- 日付選択ピッカー（iOS/Android/PCで確実に動作する） -->
+                    <span class="deadline-sub-label">日付</span> <!-- 入力欄の下に補助ラベルを表示する -->
+                </div>
+                <div class="deadline-field"> <!-- ② iOS Safari対応：時刻フィールドをラベル付きラッパーで包む -->
+                    <input type="time" id="taskDeadlineTime"> <!-- 時刻選択ピッカー（未入力時は00:00として保存する） -->
+                    <span class="deadline-sub-label">時刻（任意）</span> <!-- 時刻は省略可能であることを示す補助ラベル -->
+                </div>
             </div>
         </div>
 
