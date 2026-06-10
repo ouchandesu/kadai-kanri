@@ -105,13 +105,30 @@
 
         /* 各課題アイテムのスタイル */
         #taskList li {
-            display: flex;                  /* 課題情報とボタン群を横並びにする */
-            justify-content: space-between; /* 情報を左端、ボタンを右端に配置する */
-            align-items: flex-start;        /* 縦方向は上揃えにする */
-            border-bottom: 1px solid #eee;  /* アイテム下に区切り線 */
-            padding: 12px 0;                /* 上下の余白 */
-            line-height: 1.6;               /* 行間を広くして読みやすくする */
+            display: flex;                   /* 課題情報とボタン群を横並びにする */
+            justify-content: space-between;  /* 情報を左端、ボタンを右端に配置する */
+            align-items: flex-start;         /* 縦方向は上揃えにする */
+            border-bottom: 1px solid #eee;   /* アイテム下に区切り線 */
+            border-left: 4px solid transparent; /* 科目カラーバー領域を確保する（JSで色を設定する） */
+            padding: 12px 0;                 /* 上下の余白 */
+            line-height: 1.6;                /* 行間を広くして読みやすくする */
         }
+
+        /* ===================================================================
+           カウントダウン表示（「あと〇日〇時間」）
+           =================================================================== */
+
+        /* カウントダウンテキスト共通スタイル */
+        .task-countdown {
+            font-size: 0.82rem;  /* やや小さめのフォントサイズにする */
+            font-weight: bold;   /* 太字にして目立たせる */
+            margin-top: 4px;     /* 期限テキストとの間に余白を取る */
+        }
+
+        .countdown-urgent  { color: #e05555; } /* 3日以内：赤字 */
+        .countdown-warning { color: #f0a500; } /* 7日以内：オレンジ */
+        .countdown-normal  { color: #43a047; } /* それ以外：緑 */
+        .countdown-overdue { color: #aaa; }    /* 期限切れ：グレー */
 
         /* リストの最後のアイテムは区切り線を表示しない */
         #taskList li:last-child {
@@ -969,6 +986,19 @@
         // 提出方法のデフォルト値（localStorageに保存データがない初回起動時に使う）
         var DEFAULT_METHODS = ['オンライン提出', '印刷して提出', 'メール送付', 'その他'];
 
+        // 科目カラーバーに使う色のパレット（白文字が映える彩度・明度のMaterial Design準拠色）
+        // ハッシュで授業名をこの配列の1色に決定論的にマッピングする
+        var SUBJECT_COLORS = [
+            '#e53935', // 赤
+            '#d81b60', // ピンク
+            '#8e24aa', // 紫
+            '#1e88e5', // 青
+            '#00897b', // ティール
+            '#43a047', // 緑
+            '#fb8c00', // オレンジ
+            '#6d4c41', // ブラウン
+        ];
+
         // 現在編集中の課題ID（nullのときは新規登録モード、IDがセットされているときは編集モード）
         var editingId = null;
 
@@ -1112,14 +1142,14 @@
 
                 // この日の課題チップを生成してセルに追加する
                 var dayTasks = taskMap[dateKey] || []; // この日の課題リスト（なければ空配列）
-                for (var t = 0; t < dayTasks.length; t++) {                  // この日の全課題をループする
-                    var chip = document.createElement('div');                 // チップ用のdivを生成する
-                    var urg  = getUrgencyClass(dayTasks[t].deadline);         // 締め切りまでの緊急度を取得する
-                    chip.className   = 'cal-task ' + urg +                   // 緊急度クラスを付ける
-                        (dayTasks[t].done ? ' done-task' : '');              // 完了済みはさらに薄くする
-                    chip.textContent = dayTasks[t].name;                     // 課題名をテキストとして表示する
-                    chip.title       = dayTasks[t].name;                     // ホバー時に全文をツールチップ表示する
-                    cell.appendChild(chip);                                   // セルにチップを追加する
+                for (var t = 0; t < dayTasks.length; t++) {                          // この日の全課題をループする
+                    var chip = document.createElement('div');                         // チップ用のdivを生成する
+                    chip.className            = 'cal-task' +                          // 基本クラスを付ける
+                        (dayTasks[t].done ? ' done-task' : '');                      // 完了済みはさらに薄くする
+                    chip.style.backgroundColor = getSubjectColor(dayTasks[t].subject); // 授業名の色をチップ背景色に設定する
+                    chip.textContent = dayTasks[t].name;                             // 課題名をテキストとして表示する
+                    chip.title       = dayTasks[t].name;                             // ホバー時に全文をツールチップ表示する
+                    cell.appendChild(chip);                                           // セルにチップを追加する
                 }
 
                 grid.appendChild(cell); // 完成したセルをグリッドに追加する
@@ -1161,18 +1191,19 @@
             } else {
                 // この日の課題を1件ずつリストに追加する
                 for (var i = 0; i < dayTasks.length; i++) {
-                    var li      = document.createElement('li');               // リストアイテムを生成する
-                    var urg     = getUrgencyClass(dayTasks[i].deadline);      // 緊急度クラスを取得する
-                    li.className = urg + (dayTasks[i].done ? ' done-task' : ''); // 緊急度と完了状態のクラスを付ける
+                    var li = document.createElement('li');                                          // リストアイテムを生成する
+                    li.className = (dayTasks[i].done ? 'done-task' : '');                          // 完了状態のみクラスで管理する
+                    li.style.backgroundColor = getSubjectColor(dayTasks[i].subject);               // 授業名の色をアイテム背景色に設定する
 
-                    // 授業名（ある場合のみ表示）・課題名・時刻・提出方法・完了状態を組み立てる
+                    // 授業名・課題名・カウントダウン・時刻・提出方法・完了状態を組み立てる
                     var subjectStr = dayTasks[i].subject ? '🏫 ' + escapeHtml(dayTasks[i].subject) + '<br>' : ''; // 授業名（任意）
-                    var timeStr    = dayTasks[i].deadline.split('T')[1] || '00:00';                                // 時刻部分（なければ00:00）
-                    var doneStr    = dayTasks[i].done ? '　✅ 完了' : '';                                          // 完了状態の表示
+                    var timeStr    = dayTasks[i].deadline.split('T')[1] || '00:00';                               // 時刻部分（なければ00:00）
+                    var doneStr    = dayTasks[i].done ? '　✅ 完了' : '';                                         // 完了状態の表示
+                    var cdText     = getCountdownText(dayTasks[i].deadline);                                      // カウントダウンテキストを生成する
                     li.innerHTML   =
-                        subjectStr +                                                                               // 授業名行（あれば）
-                        '<strong>' + escapeHtml(dayTasks[i].name) + '</strong>' + doneStr + '<br>' +             // 課題名と完了マーク
-                        '<small>⏰ ' + timeStr + '　📬 ' + escapeHtml(dayTasks[i].method) + '</small>';          // 時刻と提出方法
+                        subjectStr +                                                                              // 授業名行（あれば）
+                        '<strong>' + escapeHtml(dayTasks[i].name) + '</strong>' + doneStr + '<br>' +            // 課題名と完了マーク
+                        '<small>⏳ ' + cdText + '　⏰ ' + timeStr + '　📬 ' + escapeHtml(dayTasks[i].method) + '</small>'; // カウントダウン・時刻・提出方法
 
                     list.appendChild(li); // リストにアイテムを追加する
                 }
@@ -1229,11 +1260,22 @@
             var li = document.createElement('li'); // 新しい<li>要素を生成する
             li.dataset.id = task.id;               // 削除・編集時に課題を特定できるよう、IDを<li>のdata属性に紐付ける
 
+            // 授業名に対応する科目色を取得する（授業名なし→グレー、授業名あり→パレットから決定論的に選択）
+            var subjectColor = getSubjectColor(task.subject); // 授業名ごとの一意な色を取得する
+
+            // 左ボーダーに科目色を設定してカラーバーを表示する
+            li.style.borderLeftColor = subjectColor; // CSS で確保した border-left の色を科目色で上書きする
+            li.style.paddingLeft     = '10px';       // ボーダーとコンテンツの間に余白を追加する
+
             // 授業名が入力されている場合のみ表示するHTML文字列を事前に組み立てる
-            // 空文字・未定義の場合は空文字列にして授業名行自体を非表示にする
-            var subjectHtml = (task.subject && task.subject !== '')      // 授業名が存在し空でないか確認する
-                ? '<div class="task-subject">🏫 ' + escapeHtml(task.subject) + '</div>' // 授業名を表示するHTML（XSS対策でエスケープ）
-                : '';                                                                    // 授業名がなければ空文字列にして行を出さない
+            // 科目色をインラインスタイルで適用し、授業名がなければ行ごと省略する
+            var subjectHtml = (task.subject && task.subject !== '')    // 授業名が存在し空でないか確認する
+                ? '<div class="task-subject" style="color:' + subjectColor + '">🏫 ' + escapeHtml(task.subject) + '</div>'
+                : '';                                                  // 授業名がなければ空文字列にして行を出さない
+
+            // カウントダウンのテキストと緊急度クラスを事前に生成する
+            var cdText  = getCountdownText(task.deadline);   // 「あと〇日〇時間」などのテキストを生成する
+            var cdClass = getCountdownClass(task.deadline);  // 残り日数から赤/オレンジ/緑/グレーのクラスを決める
 
             // 完了状態（task.done）に応じてボタンのクラスとテキストを切り替える
             // 古いデータで done フィールドが存在しない場合は未完了（false）として扱う
@@ -1247,12 +1289,13 @@
             }
 
             // <li>の中身をHTMLで組み立てる
-            // 左側：課題情報（授業名・課題名・期限・提出方法）、右側：完了・編集・削除ボタン
+            // 左側：課題情報（授業名・課題名・期限・カウントダウン・提出方法）、右側：完了・編集・削除ボタン
             li.innerHTML =
                 '<div class="task-info">' +                                                        // 課題情報をまとめるコンテナ開始
-                  subjectHtml +                                                                    // 授業名（入力されている場合のみ表示）
+                  subjectHtml +                                                                    // 授業名（入力されている場合のみ科目色付きで表示）
                   '<span class="task-name">' + escapeHtml(task.name) + '</span>' +                // 課題名（XSS対策でエスケープ）
                   '<div class="task-detail">📅 期限：' + deadlineJP + '</div>' +                  // 期限を日本語表示
+                  '<div class="task-countdown ' + cdClass + '" data-deadline="' + task.deadline + '">⏳ ' + cdText + '</div>' + // カウントダウン（data属性で期限を保持しupdateAllCountdowns()が更新できるようにする）
                   '<div class="task-detail">📬 提出方法：' + escapeHtml(task.method) + '</div>' + // 提出方法
                 '</div>' +                                                                         // 課題情報コンテナ終了
                 '<div class="btn-group">' +                                                        // ボタン群をまとめるコンテナ開始
@@ -1578,6 +1621,81 @@
         }
 
         // -----------------------------------------------------------------
+        // getSubjectColor(subject) : 授業名から決定論的に色を返す
+        // subject: 授業名の文字列（空・未定義の場合はグレーを返す）
+        // 同じ授業名は常に同じ色になる（ハッシュで配列インデックスを決定する）
+        // -----------------------------------------------------------------
+        function getSubjectColor(subject) {
+            if (!subject || subject === '') return '#aaa'; // 授業名がなければグレーを返す
+
+            var hash = 0;                                      // ハッシュ値の初期値
+            for (var i = 0; i < subject.length; i++) {        // 授業名の各文字コードをハッシュに混ぜる
+                hash = subject.charCodeAt(i) + ((hash << 5) - hash); // djb2アルゴリズムの変形（シンプルなハッシュ）
+            }
+            var index = Math.abs(hash) % SUBJECT_COLORS.length; // 配列の範囲内に収める
+            return SUBJECT_COLORS[index];                       // 決定した色を返す
+        }
+
+        // -----------------------------------------------------------------
+        // getCountdownText(deadlineStr) : 締め切りまでの残り時間をテキストで返す
+        // deadlineStr: 'YYYY-MM-DDTHH:MM' 形式の文字列
+        // 返り値: 「あと3日14時間」「あと5時間」「あと30分」「期限切れ」など
+        // -----------------------------------------------------------------
+        function getCountdownText(deadlineStr) {
+            var now      = new Date();                  // 現在の日時（時刻込み）を取得する
+            var deadline = new Date(deadlineStr);       // 期限文字列をDateオブジェクトに変換する
+            var diffMs   = deadline - now;              // 現在から期限までのミリ秒差を計算する
+
+            if (diffMs < 0) return '期限切れ';          // マイナスなら既に期限を超えている
+
+            var diffMins  = Math.floor(diffMs / 60000);       // 残り分数を計算する（切り捨て）
+            var diffHours = Math.floor(diffMins / 60);         // 残り時間数を計算する
+            var diffDays  = Math.floor(diffHours / 24);        // 残り日数を計算する
+            var remHours  = diffHours % 24;                    // 日以下の端数時間を計算する
+
+            if (diffDays > 0) {
+                // 1日以上ある場合：「あと〇日〇時間」を表示する（0時間は省略する）
+                return 'あと' + diffDays + '日' + (remHours > 0 ? remHours + '時間' : '');
+            }
+            if (diffHours > 0) {
+                return 'あと' + diffHours + '時間'; // 1時間以上24時間未満：「あと〇時間」を表示する
+            }
+            return 'あと' + diffMins + '分';        // 1時間未満：「あと〇分」を表示する
+        }
+
+        // -----------------------------------------------------------------
+        // getCountdownClass(deadlineStr) : 残り日数に応じた緊急度クラスを返す
+        // 返り値: 'countdown-urgent'（3日以内・赤）/ 'countdown-warning'（7日以内・オレンジ）
+        //         / 'countdown-normal'（緑）/ 'countdown-overdue'（期限切れ・グレー）
+        // -----------------------------------------------------------------
+        function getCountdownClass(deadlineStr) {
+            var now      = new Date();                  // 現在の日時を取得する
+            var deadline = new Date(deadlineStr);       // 期限をDateオブジェクトに変換する
+            var diffMs   = deadline - now;              // 残りミリ秒を計算する
+
+            if (diffMs < 0) return 'countdown-overdue'; // 期限切れ
+
+            var diffDays = diffMs / (1000 * 60 * 60 * 24); // ミリ秒を日数に変換する（小数点あり）
+            if (diffDays <= 3) return 'countdown-urgent';   // 3日以内：赤
+            if (diffDays <= 7) return 'countdown-warning';  // 7日以内：オレンジ
+            return 'countdown-normal';                       // それ以外：緑
+        }
+
+        // -----------------------------------------------------------------
+        // updateAllCountdowns() : 画面上のすべてのカウントダウン表示を最新の残り時間に更新する
+        // setIntervalで1分ごとに呼ばれる
+        // -----------------------------------------------------------------
+        function updateAllCountdowns() {
+            var els = document.querySelectorAll('.task-countdown'); // カウントダウン要素をすべて取得する
+            for (var i = 0; i < els.length; i++) {                  // 全要素をループする
+                var dl = els[i].dataset.deadline;                   // data-deadline属性から期限を取得する
+                if (!dl) continue;                                  // 期限がない要素はスキップする
+                els[i].textContent = '⏳ ' + getCountdownText(dl); // テキストを最新の残り時間に更新する
+                els[i].className   = 'task-countdown ' + getCountdownClass(dl); // クラスを更新して色を変える
+            }
+        }
+
+        // -----------------------------------------------------------------
         // saveMethods(methods) : 提出方法の配列をlocalStorageに保存する
         // methods: 文字列の配列
         // -----------------------------------------------------------------
@@ -1738,6 +1856,10 @@
         window.addEventListener('DOMContentLoaded', function () {
             loadMethods(); // 提出方法をlocalStorageから読み込んでドロップダウンを初期化する
             loadTasks();   // 課題データをlocalStorageから読み込んで一覧を表示する
+
+            // 1分（60,000ミリ秒）ごとにカウントダウンを再計算して全表示を更新する
+            // setIntervalは非同期で繰り返し実行されるため、ページを開いたまま時間が経過しても常に最新の残り時間を表示できる
+            setInterval(updateAllCountdowns, 60000);
         });
     </script>
 
