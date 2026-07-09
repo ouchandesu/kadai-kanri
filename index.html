@@ -513,6 +513,87 @@
         /* 設定モーダルの.settings-modalスタイルを流用しつつ横幅だけ調整する */
         .form-modal { width: 480px; } /* 入力欄が窮屈にならない幅を確保する（max-width:92vwは継承される） */
 
+        /* ===== 繰り返し設定 ===== */
+        /* 繰り返しセクション全体を薄い枠で囲み、他の入力と視覚的に区切る */
+        .repeat-section {
+            border: 1px solid #ececec;   /* 薄いグレー枠で囲う */
+            border-radius: 8px;          /* 角丸 */
+            padding: 14px 16px;          /* 内側の余白 */
+        }
+
+        /* ON/OFFトグルの行（チェックボックス＋ラベルを横並び・中央揃え） */
+        .repeat-toggle-row {
+            display: flex;           /* 横並びにする */
+            align-items: center;     /* 縦中央に揃える */
+            gap: 8px;                /* チェックボックスと文字の間 */
+            margin: 0;               /* labelの既定マージンを打ち消す */
+            font-weight: 600;        /* セミボールド */
+            cursor: pointer;         /* クリック可能を示す */
+        }
+        /* チェックボックスは幅100%指定（共通input）を打ち消して自然な大きさにする */
+        .repeat-toggle-row input[type="checkbox"] { width: auto; margin: 0; }
+
+        /* 毎月の補足説明テキスト */
+        .repeat-note {
+            font-size: 0.8rem;   /* 小さめ */
+            color: #777777;      /* グレー */
+            margin-top: 12px;    /* 上の入力との間隔 */
+            line-height: 1.5;    /* 読みやすい行間 */
+        }
+
+        /* ===== 曜日ピッカー（毎週用） ===== */
+        .weekday-picker {
+            display: flex;   /* 7つのボタンを横並びにする */
+            gap: 6px;        /* ボタン間の余白 */
+        }
+
+        /* 各曜日ボタン（丸型・非選択時はアウトライン） */
+        .weekday-btn {
+            flex: 1;                      /* 均等幅で7分割する */
+            padding: 8px 0;               /* 上下余白 */
+            min-width: 0;                 /* flexではみ出さないようにする */
+            background: #ffffff;          /* 白背景 */
+            color: #555555;               /* ダークグレー文字 */
+            border: 1.5px solid #e0e0e0;  /* 薄いグレー枠線 */
+            border-radius: 8px;           /* 角丸 */
+            font-size: 0.85rem;           /* 文字サイズ */
+            font-weight: 600;             /* セミボールド */
+            cursor: pointer;              /* ポインター */
+            touch-action: manipulation;   /* タップ遅延除去 */
+            transition: background 0.15s, color 0.15s, border-color 0.15s; /* 切り替えをなめらかに */
+        }
+        /* 選択中の曜日（黒背景で強調） */
+        .weekday-btn.active {
+            background: #000000;   /* 黒背景 */
+            color: #ffffff;        /* 白文字 */
+            border-color: #000000; /* 枠線も黒 */
+        }
+
+        /* ===== 適用範囲のラジオ行 ===== */
+        .scope-row {
+            display: flex;           /* ラジオとラベルを横並びにする */
+            align-items: flex-start; /* 折り返し時に上揃え */
+            gap: 8px;                /* ラジオと文字の間 */
+            margin: 0 0 8px 0;       /* 行間の余白 */
+            font-size: 0.85rem;      /* 少し小さめ */
+            font-weight: 500;        /* 通常寄り */
+            color: #333333;          /* 濃いグレー */
+            cursor: pointer;         /* クリック可能を示す */
+        }
+        .scope-row input[type="radio"] { width: auto; margin: 2px 0 0 0; flex-shrink: 0; } /* 幅100%を打ち消し、先頭に固定 */
+
+        /* ===== 一覧内の繰り返しバッジ ===== */
+        .task-repeat {
+            display: inline-block;      /* インラインブロックで余白を持たせる */
+            margin-top: 4px;            /* 上の要素との間隔 */
+            font-size: 0.72rem;         /* 小さめのフォント */
+            font-weight: 600;           /* セミボールド */
+            color: #6d4c41;             /* 落ち着いたブラウン系（既存パレットのトーンに合わせる） */
+            background: #f3efe9;        /* うっすら背景を敷いてラベルらしくする */
+            border-radius: 999px;       /* ピル型 */
+            padding: 1px 8px;           /* 内側の余白 */
+        }
+
         /* ===================================================================
            カレンダーボックス
            =================================================================== */
@@ -1106,6 +1187,65 @@
             </select>
         </div>
 
+        <!-- ===== 繰り返し設定 ===== -->
+        <!-- 繰り返し設定は課題データの repeat プロパティ（null または {frequency, weekdays}）に対応する。
+             通知機能などから「次回の期限」を参照しやすいよう、繰り返しは設定（パターン）のみを持ち、
+             期限そのものは各課題の deadline を都度参照する独立した構造にしている。 -->
+        <div class="form-group repeat-section">
+            <!-- 繰り返しON/OFFのトグル -->
+            <label class="repeat-toggle-row">
+                <input type="checkbox" id="repeatEnabled" onchange="onRepeatToggle()"> <!-- ONで下の頻度設定を表示する -->
+                <span>🔁 繰り返し設定</span>
+            </label>
+
+            <!-- 繰り返しONのときだけ表示される詳細設定 -->
+            <div id="repeatOptions" style="display:none;">
+
+                <!-- 頻度の選択 -->
+                <div class="form-group" style="margin-top:14px;">
+                    <label for="repeatFrequency">頻度</label>
+                    <select id="repeatFrequency" onchange="onRepeatFreqChange()"> <!-- 頻度を変えると曜日欄などの表示を切り替える -->
+                        <option value="daily">毎日</option>
+                        <option value="weekly">毎週（曜日を選択）</option>
+                        <option value="monthly">毎月（期限の日付）</option>
+                    </select>
+                </div>
+
+                <!-- 毎週のときの曜日選択（複数選択可） -->
+                <div class="form-group" id="repeatWeekdays" style="display:none;">
+                    <label>繰り返す曜日 <span style="font-weight:normal; color:#999; font-size:0.85rem;">（複数選択可）</span></label>
+                    <div class="weekday-picker" id="weekdayPicker">
+                        <!-- 各ボタンのdata-dowは 0=日〜6=土。クリックでactiveを切り替えて選択状態を表す -->
+                        <button type="button" class="weekday-btn" data-dow="0" onclick="toggleWeekday(this)">日</button>
+                        <button type="button" class="weekday-btn" data-dow="1" onclick="toggleWeekday(this)">月</button>
+                        <button type="button" class="weekday-btn" data-dow="2" onclick="toggleWeekday(this)">火</button>
+                        <button type="button" class="weekday-btn" data-dow="3" onclick="toggleWeekday(this)">水</button>
+                        <button type="button" class="weekday-btn" data-dow="4" onclick="toggleWeekday(this)">木</button>
+                        <button type="button" class="weekday-btn" data-dow="5" onclick="toggleWeekday(this)">金</button>
+                        <button type="button" class="weekday-btn" data-dow="6" onclick="toggleWeekday(this)">土</button>
+                    </div>
+                </div>
+
+                <!-- 毎月のときの補足説明 -->
+                <div id="repeatMonthlyNote" class="repeat-note" style="display:none;">
+                    毎月、上で指定した「期限の日付」と同じ日に繰り返します。
+                </div>
+            </div>
+
+            <!-- 繰り返し課題を「編集」するときだけ表示する適用範囲の選択 -->
+            <div id="repeatScope" style="display:none;">
+                <div class="settings-section-title" style="margin-top:16px;">変更の適用範囲</div>
+                <label class="scope-row">
+                    <input type="radio" name="repeatScope" value="one" checked onchange="onScopeChange()">
+                    <span>この回だけ変更（表示中の1件のみ・繰り返し設定は維持）</span>
+                </label>
+                <label class="scope-row">
+                    <input type="radio" name="repeatScope" value="all" onchange="onScopeChange()">
+                    <span>以降すべてに適用（繰り返し設定を変更・解除。次回生成分から反映）</span>
+                </label>
+            </div>
+        </div>
+
         <!-- 登録ボタン。id付きにしてJSからテキストとonclickを切り替えられるようにする -->
         <button id="submitBtn" onclick="addTask()">登録する</button>
     </div>
@@ -1179,6 +1319,99 @@
                 if (o > max) max = o;                      // より大きければ更新する
             }
             return max + 1;                                // 最大値の次を返す
+        }
+
+        // -----------------------------------------------------------------
+        // normalizeOrders(tasks) : order を現在の並び順のまま 0,1,2... の整数に振り直す
+        // 次回分を「元の課題の直後」に割り込ませた後などに呼び、小数や重複を解消する
+        // -----------------------------------------------------------------
+        function normalizeOrders(tasks) {
+            var sorted = tasks.slice().sort(function (a, b) {   // orderの昇順に並べたコピーを作る
+                return ((a.order || 0) - (b.order || 0));
+            });
+            for (var i = 0; i < sorted.length; i++) {           // 先頭から通し番号を振り直す
+                sorted[i].order = i;                            // 同じオブジェクトなので元配列にも反映される
+            }
+        }
+
+        // =================================================================
+        // 繰り返し設定（repeat）まわりのヘルパー
+        //   repeat のデータ構造（課題データ内に独立して持たせる）:
+        //     null                                   … 繰り返しなし（通常の1回課題）
+        //     { frequency: 'daily' }                 … 毎日
+        //     { frequency: 'weekly', weekdays:[1,3] } … 毎週（0=日〜6=土の配列）
+        //     { frequency: 'monthly' }               … 毎月（期限の日付の「日」を使う）
+        //   ※「次回の期限」は各課題の deadline を参照すれば得られる独立構造（通知機能で参照しやすい）
+        // =================================================================
+
+        // 曜日番号（0=日〜6=土）を日本語1文字に変換する対応表
+        var WEEKDAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+
+        // -----------------------------------------------------------------
+        // repeatLabelText(repeat) : 繰り返し設定を一覧バッジ用の短い文言にする
+        // 例: 毎日 / 毎週(月・水・金) / 毎月
+        // -----------------------------------------------------------------
+        function repeatLabelText(repeat) {
+            if (!repeat) return '';                                   // 繰り返しなしは空文字
+            if (repeat.frequency === 'daily')  return '毎日';         // 毎日
+            if (repeat.frequency === 'monthly') return '毎月';        // 毎月
+            if (repeat.frequency === 'weekly') {                      // 毎週は曜日を並べて表示する
+                var days = (repeat.weekdays || []).slice().sort(function (a, b) { return a - b; }); // 曜日を昇順に
+                var names = days.map(function (d) { return WEEKDAY_LABELS[d]; }); // 番号を日本語に変換
+                return names.length ? '毎週(' + names.join('・') + ')' : '毎週'; // 例: 毎週(月・水・金)
+            }
+            return '';                                                // 想定外はラベルなし
+        }
+
+        // -----------------------------------------------------------------
+        // computeNextDeadline(deadlineStr, repeat) : 完了した回の期限を基準に次回の期限を計算する
+        // deadlineStr: 'YYYY-MM-DDTHH:MM'、repeat: 繰り返し設定
+        // 返り値: 次回の 'YYYY-MM-DDTHH:MM'（時刻は元の期限をそのまま引き継ぐ）
+        // -----------------------------------------------------------------
+        function computeNextDeadline(deadlineStr, repeat) {
+            var parts = deadlineStr.split('T');            // 日付部分と時刻部分に分ける
+            var timeStr = parts[1] || '00:00';             // 時刻がなければ00:00とする
+            var dParts = parts[0].split('-');              // 日付を年・月・日に分解する
+            var y = parseInt(dParts[0], 10);               // 年
+            var m = parseInt(dParts[1], 10) - 1;           // 月（Dateは0始まりなので-1）
+            var d = parseInt(dParts[2], 10);               // 日
+            var base = new Date(y, m, d);                  // 基準日（ローカル日付）
+
+            var next;                                      // 計算結果の次回日付
+            if (repeat.frequency === 'daily') {
+                next = new Date(y, m, d + 1);              // 翌日
+
+            } else if (repeat.frequency === 'weekly') {
+                var days = (repeat.weekdays || []).slice().sort(function (a, b) { return a - b; }); // 曜日を昇順に
+                if (days.length === 0) {                   // 曜日未指定は保険で1週間後にする
+                    next = new Date(y, m, d + 7);
+                } else {
+                    // 基準日の翌日から最大7日先まで見て、最初に一致する曜日を次回とする
+                    next = null;
+                    for (var i = 1; i <= 7; i++) {
+                        var cand = new Date(y, m, d + i);  // i日後の候補
+                        if (days.indexOf(cand.getDay()) !== -1) { next = cand; break; } // 指定曜日に一致したら確定
+                    }
+                }
+
+            } else if (repeat.frequency === 'monthly') {
+                // 翌月の同じ「日」。ただし翌月にその日が無い場合（例:1/31→2月）は翌月末に丸める
+                var targetMonthFirst = new Date(y, m + 1, 1);                 // 翌月1日
+                var lastDayNextMonth = new Date(y, m + 2, 0).getDate();       // 翌月の末日（m+2月の0日目=翌月末）
+                var day = Math.min(d, lastDayNextMonth);                      // 存在しない日は末日に丸める
+                next = new Date(targetMonthFirst.getFullYear(), targetMonthFirst.getMonth(), day);
+
+            } else {
+                next = new Date(y, m, d + 1);              // 想定外の頻度は翌日にフォールバック
+            }
+
+            // Date を 'YYYY-MM-DD' 文字列に整形する（ローカル日付ベース）
+            var ny = next.getFullYear();
+            var nm = next.getMonth() + 1;                  // 表示用に+1する
+            var nd = next.getDate();
+            var mm = nm < 10 ? '0' + nm : String(nm);      // 月を2桁に
+            var dd = nd < 10 ? '0' + nd : String(nd);      // 日を2桁に
+            return ny + '-' + mm + '-' + dd + 'T' + timeStr; // 時刻は元の期限を引き継ぐ
         }
 
         // -----------------------------------------------------------------
@@ -1452,6 +1685,11 @@
             var cdText  = getCountdownText(task.deadline);   // 「あと〇日〇時間」などのテキストを生成する
             var cdClass = getCountdownClass(task.deadline);  // 残り日数から赤/オレンジ/緑/グレーのクラスを決める
 
+            // 繰り返し課題なら🔁バッジ（頻度・曜日）を表示するHTMLを組み立てる
+            var repeatHtml = task.repeat
+                ? '<div><span class="task-repeat">🔁 ' + escapeHtml(repeatLabelText(task.repeat)) + '</span></div>'
+                : ''; // 繰り返しなしは何も出さない
+
             // 完了状態（task.done）に応じてボタンのクラスとテキストを切り替える
             // 古いデータで done フィールドが存在しない場合は未完了（false）として扱う
             var isDone    = !!task.done;                               // undefinedや0もfalseに統一する
@@ -1470,6 +1708,7 @@
                 '<div class="task-info">' +                                                        // 課題情報をまとめるコンテナ開始
                   subjectHtml +                                                                    // 授業名（入力されている場合のみ科目色付きで表示）
                   '<span class="task-name">' + escapeHtml(task.name) + '</span>' +                // 課題名（XSS対策でエスケープ）
+                  repeatHtml +                                                                     // 繰り返しバッジ（繰り返し課題のみ）
                   '<div class="task-detail">📅 期限：' + deadlineJP + '</div>' +                  // 期限を日本語表示
                   '<div class="task-countdown ' + cdClass + '" data-deadline="' + task.deadline + '">⏳ ' + cdText + '</div>' + // カウントダウン（data属性で期限を保持しupdateAllCountdowns()が更新できるようにする）
                   '<div class="task-detail">📬 提出方法：' + escapeHtml(task.method) + '</div>' + // 提出方法
@@ -1567,6 +1806,10 @@
                     tasks[i].order = i;                     // 現在の並び順（配列index）をそのまま採用する
                     needsResave = true;
                 }
+                if (!('repeat' in tasks[i])) {              // repeat（繰り返し設定）が無い古い課題
+                    tasks[i].repeat = null;                 // 繰り返しなしとして補完する（後方互換）
+                    needsResave = true;
+                }
             }
             if (needsResave) {        // 補完した項目があれば
                 saveTasks(tasks);     // localStorageへ保存し直す
@@ -1643,6 +1886,10 @@
                 return; // 以降の処理をキャンセルして関数を抜ける
             }
 
+            // 繰り返し設定をフォームから取得する（OFF→null / 不正→false）
+            var repeat = getRepeatFromForm();
+            if (repeat === false) { return; } // 毎週で曜日未選択などの不正時は中断（alertは関数内で表示済み）
+
             // --- localStorageへの保存処理 ---
             var tasks = getTasks(); // 既存の課題配列を取得する（なければ空配列）
 
@@ -1654,7 +1901,8 @@
                 deadline: deadline,           // 期限（YYYY-MM-DDTHH:MM形式のまま保存）
                 method:   method,             // 提出方法
                 done:     false,              // 完了状態（新規登録時は必ず未完了にする）
-                order:    nextOrder(tasks)    // 並び順：既存の最大+1でリスト末尾に配置する
+                order:    nextOrder(tasks),   // 並び順：既存の最大+1でリスト末尾に配置する
+                repeat:   repeat              // 繰り返し設定（null＝繰り返しなし）
             };
 
             tasks.push(task);   // 新しい課題を配列の末尾に追加する
@@ -1702,6 +1950,19 @@
             document.getElementById('taskDeadlineTime').value = dlTime;             // 期限の時刻部分をセットする
             document.getElementById('taskMethod').value       = task.method;        // 提出方法をセットする
 
+            // 繰り返し設定をフォームに反映する（nullなら繰り返しOFF）
+            setRepeatForm(task.repeat);
+
+            // 繰り返し課題のときだけ「変更の適用範囲」ラジオを表示する。
+            // 初期選択は「この回だけ」。onScopeChange()で繰り返し入力の有効/無効も整える。
+            if (task.repeat) {
+                document.getElementById('repeatScope').style.display = 'block';
+                document.querySelector('input[name="repeatScope"][value="one"]').checked = true;
+                onScopeChange(); // 「この回だけ」に合わせて繰り返し入力を無効化する
+            } else {
+                document.getElementById('repeatScope').style.display = 'none'; // 通常課題では出さない
+            }
+
             // 現在編集中の課題IDをグローバル変数に記録する（updateTask()で使う）
             editingId = id;
 
@@ -1741,6 +2002,27 @@
                 return; // 以降の処理をキャンセルして関数を抜ける
             }
 
+            // --- 繰り返し設定の適用範囲を判定する ---
+            // 適用範囲ラジオが表示されている（＝繰り返し課題の編集）ときのみ scope を見る。
+            //   scope='all'（以降すべて）… 繰り返し設定そのものをフォームの内容へ変更（解除=OFF含む）
+            //   scope='one'（この回だけ）… 繰り返し設定は元のまま維持し、内容だけ更新する
+            var scopeVisible = document.getElementById('repeatScope').style.display !== 'none';
+            var scopeEl      = document.querySelector('input[name="repeatScope"]:checked');
+            var applyRepeat  = false; // repeat をフォームの値で書き換えるか
+            var newRepeat    = null;  // 書き換える場合の repeat 値
+            if (!scopeVisible) {
+                // 通常課題の編集：フォームの繰り返しトグルをそのまま反映する（新たにONにするのも可）
+                applyRepeat = true;
+                newRepeat   = getRepeatFromForm();
+                if (newRepeat === false) { return; } // 毎週で曜日未選択などの不正時は中断
+            } else if (scopeEl && scopeEl.value === 'all') {
+                // 繰り返し課題を「以降すべて」で編集：繰り返し設定を変更・解除する
+                applyRepeat = true;
+                newRepeat   = getRepeatFromForm();
+                if (newRepeat === false) { return; } // 不正時は中断
+            }
+            // scope='one'（この回だけ）のときは applyRepeat=false のまま → 元の repeat を維持する
+
             // --- localStorageの更新処理 ---
             var tasks = getTasks();                          // 保存済み課題を配列で取得する
             for (var i = 0; i < tasks.length; i++) {         // 全課題をループして編集対象を探す
@@ -1749,6 +2031,12 @@
                     tasks[i].name     = name;                 // 課題名を新しい値で上書きする
                     tasks[i].deadline = deadline;             // 期限を新しい値で上書きする
                     tasks[i].method   = method;               // 提出方法を新しい値で上書きする
+                    if (applyRepeat) {                        // 「以降すべて」または通常課題のときだけ
+                        tasks[i].repeat = newRepeat;          // 繰り返し設定を書き換える（null＝解除）
+                        // 繰り返し設定を変更したので、この回からの次回生成フラグはリセットしておく
+                        // （設定変更後にこの回を完了したら、新しい設定で次回を生成できるようにする）
+                        tasks[i].spawned = false;
+                    }
                     break;                                    // 更新完了したのでループを終了する
                 }
             }
@@ -1770,12 +2058,37 @@
 
             // localStorageの該当課題の done フィールドを反転する
             var tasks = getTasks();                        // 保存済み課題を配列で取得する
+            var target = null;                             // 対象課題を控えておく（繰り返し生成の判定に使う）
             for (var i = 0; i < tasks.length; i++) {       // 全課題をループして対象を探す
                 if (tasks[i].id === id) {                  // IDが一致した課題を見つけたら
                     tasks[i].done = !tasks[i].done;        // trueならfalse、falseならtrueに反転する
+                    target = tasks[i];                     // 対象を控える
                     break;                                 // 更新完了したのでループを終了する
                 }
             }
+
+            // --- 繰り返し課題を「完了」にした瞬間、次回分を1件だけ自動生成する ---
+            // 生成条件：繰り返し設定があり／今回の操作で完了になり／まだこの回から生成していない（spawnedガード）。
+            // spawned フラグで、完了→未完了→再完了を繰り返しても重複生成されないようにする。
+            if (target && target.done && target.repeat && !target.spawned) {
+                target.spawned = true; // この回からは生成済みと記録する
+
+                // 次回課題を作る。内容（授業名・課題名・提出方法・繰り返し設定）は今回分から引き継ぐ
+                var next = {
+                    id:       String(Date.now()),                                 // 新しい一意なID
+                    subject:  target.subject,                                     // 授業名を引き継ぐ
+                    name:     target.name,                                        // 課題名を引き継ぐ
+                    deadline: computeNextDeadline(target.deadline, target.repeat), // 頻度・曜日から次回期限を算出
+                    method:   target.method,                                      // 提出方法を引き継ぐ
+                    done:     false,                                              // 次回分は未完了
+                    order:    target.order + 0.5,                                 // 元の課題の直後に割り込ませる（後でnormalizeで整数化）
+                    repeat:   target.repeat,                                       // 繰り返し設定を引き継ぐ
+                    spawned:  false                                               // 次回分はまだ生成していない
+                };
+                tasks.push(next);        // 配列に追加する
+                normalizeOrders(tasks);  // order を 0,1,2... の整数に振り直して小数・重複を解消する
+            }
+
             saveTasks(tasks); // 更新した配列をlocalStorageへ書き込む
 
             // 一覧を描き直す。フィルタ表示中（未完了/完了）は状態が変わった課題が
@@ -1971,6 +2284,108 @@
             renderMethodSelect(); // フォームのドロップダウンを構築する
         }
 
+        // =================================================================
+        // 繰り返し設定フォームの操作系
+        // =================================================================
+
+        // -----------------------------------------------------------------
+        // onRepeatToggle() : 繰り返しON/OFFトグルの切り替え時に詳細設定の表示/非表示を切り替える
+        // -----------------------------------------------------------------
+        function onRepeatToggle() {
+            var on = document.getElementById('repeatEnabled').checked;                 // トグルの状態
+            document.getElementById('repeatOptions').style.display = on ? 'block' : 'none'; // 詳細設定エリアの表示切替
+            if (on) { onRepeatFreqChange(); } // ONにしたら頻度に応じた欄（曜日など）も整える
+        }
+
+        // -----------------------------------------------------------------
+        // onRepeatFreqChange() : 頻度セレクトの変更時に、曜日欄／毎月の注記の表示を切り替える
+        // -----------------------------------------------------------------
+        function onRepeatFreqChange() {
+            var freq = document.getElementById('repeatFrequency').value;                        // 選択中の頻度
+            document.getElementById('repeatWeekdays').style.display    = (freq === 'weekly')  ? 'block' : 'none'; // 毎週のみ曜日欄
+            document.getElementById('repeatMonthlyNote').style.display = (freq === 'monthly') ? 'block' : 'none'; // 毎月のみ注記
+        }
+
+        // -----------------------------------------------------------------
+        // toggleWeekday(btn) : 曜日ボタンの選択状態（active）を切り替える
+        // -----------------------------------------------------------------
+        function toggleWeekday(btn) {
+            btn.classList.toggle('active'); // クリックで選択/非選択を反転する
+        }
+
+        // -----------------------------------------------------------------
+        // onScopeChange() : 適用範囲ラジオ（この回だけ/以降すべて）の切り替え時に呼ばれる。
+        //   「この回だけ」では繰り返し設定は変更されないため、繰り返しの詳細入力を無効化して
+        //   誤解を防ぐ（解除や頻度変更は「以降すべて」でのみ可能）。
+        // -----------------------------------------------------------------
+        function onScopeChange() {
+            var scopeEl = document.querySelector('input[name="repeatScope"]:checked'); // 選択中のラジオ
+            var isAll   = scopeEl && scopeEl.value === 'all';                          // 「以降すべて」か
+            // 繰り返し関連の入力群を「以降すべて」のときだけ操作可能にする
+            var controls = document.querySelectorAll(
+                '#repeatEnabled, #repeatFrequency, .weekday-btn');
+            for (var i = 0; i < controls.length; i++) { controls[i].disabled = !isAll; }
+            // 見た目でも操作可否が分かるよう、詳細エリアを薄くする
+            document.getElementById('repeatOptions').style.opacity = isAll ? '1' : '0.5';
+        }
+
+        // -----------------------------------------------------------------
+        // getRepeatFromForm() : フォームの繰り返し入力を repeat オブジェクト（またはnull）に変換する
+        // 返り値: null（OFF） / {frequency} / {frequency:'weekly', weekdays:[...]}
+        // 不正（毎週で曜日未選択）のときは alert して null 以外の特別値 false を返す
+        // -----------------------------------------------------------------
+        function getRepeatFromForm() {
+            if (!document.getElementById('repeatEnabled').checked) {
+                return null; // 繰り返しOFF
+            }
+            var freq = document.getElementById('repeatFrequency').value; // 頻度
+
+            if (freq === 'weekly') {
+                // 選択中（active）の曜日ボタンから曜日番号の配列を作る
+                var days = [];
+                var btns = document.querySelectorAll('#weekdayPicker .weekday-btn.active');
+                for (var i = 0; i < btns.length; i++) {
+                    days.push(parseInt(btns[i].dataset.dow, 10)); // data-dowを数値に
+                }
+                if (days.length === 0) {                          // 曜日未選択はエラー
+                    alert('毎週の繰り返しでは、曜日を1つ以上選んでください。');
+                    return false;                                 // 呼び出し側に不正を伝える
+                }
+                days.sort(function (a, b) { return a - b; });     // 昇順に整える
+                return { frequency: 'weekly', weekdays: days };
+            }
+
+            // 毎日・毎月は頻度のみ
+            return { frequency: freq };
+        }
+
+        // -----------------------------------------------------------------
+        // setRepeatForm(repeat) : repeat オブジェクト（またはnull）でフォームの繰り返し入力を初期化する
+        // -----------------------------------------------------------------
+        function setRepeatForm(repeat) {
+            // まず曜日ボタンの選択をすべて解除する
+            var btns = document.querySelectorAll('#weekdayPicker .weekday-btn');
+            for (var i = 0; i < btns.length; i++) { btns[i].classList.remove('active'); }
+
+            if (!repeat) {
+                // 繰り返しなし：OFF・頻度は毎日に戻す
+                document.getElementById('repeatEnabled').checked = false;
+                document.getElementById('repeatFrequency').value = 'daily';
+            } else {
+                // 繰り返しあり：ON・頻度を反映
+                document.getElementById('repeatEnabled').checked = true;
+                document.getElementById('repeatFrequency').value = repeat.frequency;
+                if (repeat.frequency === 'weekly' && repeat.weekdays) {
+                    // 該当する曜日ボタンをactiveにする
+                    for (var j = 0; j < btns.length; j++) {
+                        var dow = parseInt(btns[j].dataset.dow, 10);
+                        if (repeat.weekdays.indexOf(dow) !== -1) { btns[j].classList.add('active'); }
+                    }
+                }
+            }
+            onRepeatToggle();     // 表示（詳細エリアの開閉）を状態に合わせる
+        }
+
         // -----------------------------------------------------------------
         // resetTaskForm() : フォームの入力欄を空にし、編集状態を新規登録モードに戻す
         // -----------------------------------------------------------------
@@ -1980,6 +2395,16 @@
             document.getElementById('taskDeadlineDate').value   = '';  // 期限の日付入力欄をクリアする
             document.getElementById('taskDeadlineTime').value   = '';  // 期限の時刻入力欄をクリアする
             document.getElementById('taskMethod').selectedIndex = 0;   // 提出方法を先頭の選択肢に戻す
+
+            // 繰り返し設定をOFF（初期状態）に戻す
+            setRepeatForm(null);
+
+            // 適用範囲ラジオを隠して「この回だけ」に戻し、繰り返し入力の無効化も解除する
+            document.getElementById('repeatScope').style.display = 'none';
+            document.querySelector('input[name="repeatScope"][value="one"]').checked = true;
+            var controls = document.querySelectorAll('#repeatEnabled, #repeatFrequency, .weekday-btn');
+            for (var i = 0; i < controls.length; i++) { controls[i].disabled = false; } // 新規登録では常に操作可能
+            document.getElementById('repeatOptions').style.opacity = '1';
 
             // タイトルとボタンを新規登録モードに戻す
             document.getElementById('formModalTitle').textContent = '課題を登録する'; // ヘッダーのタイトル
