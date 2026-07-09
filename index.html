@@ -431,6 +431,88 @@
             border-bottom: 3px solid #000000; /* 黒下線でアクティブを示す */
         }
 
+        /* ===== リスト見出し行（タイトル＋新規追加ボタン） ===== */
+        .list-header {
+            display: flex;                   /* タイトルとボタンを横並びにする */
+            justify-content: space-between;  /* タイトルを左端、ボタンを右端に配置する */
+            align-items: center;             /* 縦方向を中央に揃える */
+            margin-bottom: 16px;             /* フィルタ行との間の余白 */
+        }
+
+        /* .list-header内の見出しは下マージンを打ち消して行の中央に揃える */
+        .list-header h1 { margin: 0; }
+
+        /* 「＋ 新規追加」ボタン（黒背景・白文字で主要アクションを強調） */
+        .btn-add {
+            padding: 9px 16px;           /* ボタン内側の余白 */
+            background: #000000;         /* 黒背景 */
+            color: #ffffff;              /* 白文字 */
+            border: none;                /* 枠線なし */
+            border-radius: 6px;          /* 角を丸くする */
+            font-size: 0.9rem;           /* 文字サイズ */
+            font-weight: 600;            /* セミボールド */
+            cursor: pointer;             /* カーソルをポインターにする */
+            touch-action: manipulation;  /* タップ遅延を除去する */
+            white-space: nowrap;         /* テキストを折り返さない */
+            flex-shrink: 0;              /* 縮まないようにする */
+            transition: background 0.15s; /* ホバー変化をなめらかにする */
+        }
+        .btn-add:hover { background: #222222; } /* ホバー時に少し明るくする */
+
+        /* ===== 絞り込みフィルタ（すべて／未完了／完了） ===== */
+        .filter-group {
+            display: flex;         /* フィルタボタンを横並びにする */
+            gap: 8px;              /* ボタン間の余白 */
+            margin-bottom: 16px;   /* リストとの間の余白 */
+        }
+
+        /* 各フィルタボタン（ピル型・非選択時はアウトライン） */
+        .filter-btn {
+            flex: 1;                      /* 横幅を等分する */
+            padding: 8px 0;               /* 上下余白でタップしやすくする */
+            background: #ffffff;          /* 白背景 */
+            color: #555555;               /* ダークグレー文字 */
+            border: 1.5px solid #e0e0e0;  /* 薄いグレー枠線 */
+            border-radius: 999px;         /* ピル型に丸める */
+            font-size: 0.85rem;           /* 文字サイズ */
+            font-weight: 600;             /* セミボールド */
+            cursor: pointer;              /* カーソルをポインターにする */
+            touch-action: manipulation;   /* タップ遅延を除去する */
+            transition: background 0.15s, color 0.15s, border-color 0.15s; /* 切り替えをなめらかにする */
+        }
+
+        /* 選択中のフィルタボタン（黒背景で強調） */
+        .filter-btn.active {
+            background: #000000;        /* 黒背景 */
+            color: #ffffff;            /* 白文字 */
+            border-color: #000000;     /* 枠線も黒にする */
+        }
+
+        /* ===== ドラッグ&ドロップ用のつまみ（ハンドル） ===== */
+        .drag-handle {
+            flex-shrink: 0;              /* 縮まないようにする */
+            align-self: center;          /* li内で縦中央に配置する */
+            padding: 4px 8px 4px 0;      /* タップしやすいよう余白を確保する */
+            margin-right: 2px;           /* 課題情報との間に少し余白を取る */
+            color: #cccccc;              /* 薄いグレーで控えめに表示する */
+            font-size: 1.1rem;           /* つまみ記号を程よい大きさにする */
+            line-height: 1;              /* 行の高さを詰める */
+            cursor: grab;                /* つかめることを示すカーソル */
+            touch-action: none;          /* タッチ時：ハンドル上ではスクロールせず並び替えを開始する */
+            user-select: none;           /* ドラッグ中のテキスト選択を防ぐ */
+        }
+        .drag-handle:active { cursor: grabbing; } /* ドラッグ中はつかんだカーソルにする */
+
+        /* SortableJSがドラッグ中の要素に付与するクラス（半透明のプレースホルダ表示） */
+        .sortable-ghost {
+            opacity: 0.4;               /* 移動先の目安として薄く表示する */
+            background: #f0f7ff;        /* うっすら青みを付けてドロップ位置を示す */
+        }
+
+        /* ===== フォームモーダル（登録・編集） ===== */
+        /* 設定モーダルの.settings-modalスタイルを流用しつつ横幅だけ調整する */
+        .form-modal { width: 480px; } /* 入力欄が窮屈にならない幅を確保する（max-width:92vwは継承される） */
+
         /* ===================================================================
            カレンダーボックス
            =================================================================== */
@@ -875,51 +957,8 @@
         <button class="btn-settings" onclick="openSettings()">⚙ 設定</button> <!-- 設定モーダルを開くボタン -->
     </div>
 
-    <!-- ===== 入力フォームエリア ===== -->
-    <div class="form-box"> <!-- フォームをボックスで囲む -->
-        <h2>課題を登録する</h2> <!-- フォームのタイトル（編集中は「更新する」に変わる） -->
-
-        <!-- 授業名の入力グループ（任意入力のため必須マークなし） -->
-        <div class="form-group">
-            <label for="taskSubject">授業名 <span style="font-weight:normal; color:#999; font-size:0.85rem;">（任意）</span></label> <!-- for属性でinputと紐付け、任意であることを明示する -->
-            <input type="text" id="taskSubject" placeholder="例：数学・英語など"> <!-- 授業名を入力するテキストボックス（空白でも登録可能） -->
-        </div>
-
-        <!-- 課題名の入力グループ -->
-        <div class="form-group">
-            <label for="taskName">課題名</label> <!-- for属性でinputと紐付け -->
-            <input type="text" id="taskName" placeholder="例：レポート提出"> <!-- 課題名を入力するテキストボックス -->
-        </div>
-
-        <!-- 期限の入力グループ -->
-        <!-- datetime-local はiOS Safariで表示不具合があるため
-             type="date"（日付）と type="time"（時刻）の2つに分けて代替する -->
-        <div class="form-group">
-            <label>期限 <span style="font-weight:normal; color:#999; font-size:0.85rem;">（時刻は任意）</span></label> <!-- for属性はinputが2つのため省略する -->
-            <div class="deadline-group"> <!-- 日付欄と時刻欄を横並びにするコンテナ（スマホでは縦並び） -->
-                <div class="deadline-field"> <!-- ② iOS Safari対応：日付フィールドをラベル付きラッパーで包む -->
-                    <input type="date" id="taskDeadlineDate"> <!-- 日付選択ピッカー（iOS/Android/PCで確実に動作する） -->
-                    <span class="deadline-sub-label">日付</span> <!-- 入力欄の下に補助ラベルを表示する -->
-                </div>
-                <div class="deadline-field"> <!-- ② iOS Safari対応：時刻フィールドをラベル付きラッパーで包む -->
-                    <input type="time" id="taskDeadlineTime"> <!-- 時刻選択ピッカー（未入力時は00:00として保存する） -->
-                    <span class="deadline-sub-label">時刻（任意）</span> <!-- 時刻は省略可能であることを示す補助ラベル -->
-                </div>
-            </div>
-        </div>
-
-        <!-- 提出方法の入力グループ -->
-        <div class="form-group">
-            <label for="taskMethod">提出方法</label> <!-- 提出方法ラベル -->
-            <select id="taskMethod"> <!-- ドロップダウン。選択肢はloadMethods()がlocalStorageから動的に生成する -->
-            </select>
-        </div>
-
-        <!-- 登録ボタン。id付きにしてJSからテキストとonclickを切り替えられるようにする -->
-        <button id="submitBtn" onclick="addTask()">登録する</button>
-    </div>
-
     <!-- ===== タブ切り替えボタン ===== -->
+    <!-- 【変更】フォームはモーダル化して下部に移動。開いた瞬間に一覧が見える構成にした -->
     <div class="tab-group"> <!-- リストとカレンダーを切り替えるタブのコンテナ -->
         <button class="tab-btn active" id="tabList" onclick="showTab('list')">📋 リスト</button>       <!-- リスト表示タブ（初期表示） -->
         <button class="tab-btn"        id="tabCalendar" onclick="showTab('calendar')">📅 カレンダー</button> <!-- カレンダー表示タブ -->
@@ -928,8 +967,22 @@
     <!-- ===== リスト表示エリア（初期表示） ===== -->
     <div id="viewList"> <!-- タブ切り替えでshow/hideするコンテナ -->
         <div class="list-box"> <!-- 課題リストをボックスで囲む -->
-            <h1>課題一覧</h1> <!-- 一覧のタイトル -->
-            <ul id="taskList"> <!-- 課題アイテムをここに追加していく -->
+
+            <!-- リスト見出し行：タイトル（左）と新規追加ボタン（右） -->
+            <div class="list-header">
+                <h1>課題一覧</h1> <!-- 一覧のタイトル -->
+                <!-- 「新規追加」ボタン。押すと登録フォームのモーダルが開く -->
+                <button class="btn-add" onclick="openTaskForm()">＋ 新規追加</button>
+            </div>
+
+            <!-- 【追加】すべて／未完了／完了 の絞り込みフィルタ -->
+            <div class="filter-group"> <!-- フィルタボタンのコンテナ -->
+                <button class="filter-btn active" id="filterAll"    onclick="setFilter('all')">すべて</button>    <!-- 全件表示（初期） -->
+                <button class="filter-btn"        id="filterActive" onclick="setFilter('active')">未完了</button> <!-- 未完了のみ -->
+                <button class="filter-btn"        id="filterDone"   onclick="setFilter('done')">完了</button>     <!-- 完了のみ -->
+            </div>
+
+            <ul id="taskList"> <!-- 課題アイテムをここに追加していく（renderTaskList()が中身を生成する） -->
                 <!-- 初期表示：まだ課題がない旨を示すメッセージ -->
                 <li class="empty-message" id="emptyMessage">まだ課題が登録されていません。</li>
             </ul>
@@ -1004,6 +1057,68 @@
 
     </div>
 
+    <!-- ===== 課題登録／編集フォーム（モーダル） ===== -->
+    <!-- 【変更】上部にあったフォームをモーダル化。「新規追加」ボタンや「編集」ボタンから開く -->
+    <!-- オーバーレイ（クリックでモーダルを閉じる） -->
+    <div class="settings-overlay" id="formOverlay" onclick="closeTaskForm()" style="display:none;"></div>
+    <!-- モーダル本体（オーバーレイのクリックが伝播しないよう onclick で伝播を止める） -->
+    <div class="settings-modal form-modal" id="formModal" onclick="event.stopPropagation()" style="display:none;">
+
+        <!-- モーダルヘッダー：タイトルと閉じるボタン -->
+        <div class="settings-header">
+            <span id="formModalTitle">課題を登録する</span> <!-- 新規は「登録」、編集時は「編集」に切り替わる -->
+            <button class="settings-close" onclick="closeTaskForm()">✕</button> <!-- 閉じるボタン -->
+        </div>
+
+        <!-- 授業名の入力グループ（任意入力のため必須マークなし） -->
+        <div class="form-group">
+            <label for="taskSubject">授業名 <span style="font-weight:normal; color:#999; font-size:0.85rem;">（任意）</span></label> <!-- for属性でinputと紐付け、任意であることを明示する -->
+            <input type="text" id="taskSubject" placeholder="例：数学・英語など"> <!-- 授業名を入力するテキストボックス（空白でも登録可能） -->
+        </div>
+
+        <!-- 課題名の入力グループ -->
+        <div class="form-group">
+            <label for="taskName">課題名</label> <!-- for属性でinputと紐付け -->
+            <input type="text" id="taskName" placeholder="例：レポート提出"> <!-- 課題名を入力するテキストボックス -->
+        </div>
+
+        <!-- 期限の入力グループ -->
+        <!-- datetime-local はiOS Safariで表示不具合があるため
+             type="date"（日付）と type="time"（時刻）の2つに分けて代替する -->
+        <div class="form-group">
+            <label>期限 <span style="font-weight:normal; color:#999; font-size:0.85rem;">（時刻は任意）</span></label> <!-- for属性はinputが2つのため省略する -->
+            <div class="deadline-group"> <!-- 日付欄と時刻欄を横並びにするコンテナ（スマホでは縦並び） -->
+                <div class="deadline-field"> <!-- ② iOS Safari対応：日付フィールドをラベル付きラッパーで包む -->
+                    <input type="date" id="taskDeadlineDate"> <!-- 日付選択ピッカー（iOS/Android/PCで確実に動作する） -->
+                    <span class="deadline-sub-label">日付</span> <!-- 入力欄の下に補助ラベルを表示する -->
+                </div>
+                <div class="deadline-field"> <!-- ② iOS Safari対応：時刻フィールドをラベル付きラッパーで包む -->
+                    <input type="time" id="taskDeadlineTime"> <!-- 時刻選択ピッカー（未入力時は00:00として保存する） -->
+                    <span class="deadline-sub-label">時刻（任意）</span> <!-- 時刻は省略可能であることを示す補助ラベル -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 提出方法の入力グループ -->
+        <div class="form-group">
+            <label for="taskMethod">提出方法</label> <!-- 提出方法ラベル -->
+            <select id="taskMethod"> <!-- ドロップダウン。選択肢はloadMethods()がlocalStorageから動的に生成する -->
+            </select>
+        </div>
+
+        <!-- 登録ボタン。id付きにしてJSからテキストとonclickを切り替えられるようにする -->
+        <button id="submitBtn" onclick="addTask()">登録する</button>
+    </div>
+
+    <!-- ===== 外部ライブラリ：SortableJS（ドラッグ&ドロップ並び替え） =====
+         採用理由：PC（マウス）とスマホ（タッチ）双方で動く並び替えを自前実装すると
+         PointerEvent／自動スクロール／タッチとスクロールの競合など考慮点が多く不具合が出やすい。
+         SortableJSは軽量（約40KB）で両対応が実績十分なため採用。CDNから読み込む。
+         ※ネット未接続やCDN遮断時は読み込まれないが、その場合でも並び替え以外の機能は
+           そのまま動作するようJS側でフォールバック（window.Sortable の存在チェック）している。
+           将来のPWA/オフライン対応時は、このファイルにインライン展開するかローカル配置に切り替える。 -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+
     <!-- ===== JavaScript：課題の登録・編集・削除・localStorage保存／読込 ===== -->
     <script>
         // localStorageへの保存に使うキー名を定数として定義（タイポ防止のため1か所にまとめる）
@@ -1029,9 +1144,42 @@
         // 現在編集中の課題ID（nullのときは新規登録モード、IDがセットされているときは編集モード）
         var editingId = null;
 
+        // 一覧の絞り込み状態（'all'=すべて / 'active'=未完了 / 'done'=完了）
+        var currentFilter = 'all';
+
         // カレンダーが現在表示している年と月（0始まり）を管理する変数
         var calYear  = new Date().getFullYear(); // 初期値：現在の年
         var calMonth = new Date().getMonth();    // 初期値：現在の月（0=1月、11=12月）
+
+        // -----------------------------------------------------------------
+        // getTasks() : localStorageから課題配列を読み込んで返す共通ヘルパー
+        // 保存がなければ空配列を返す。読み書きを1か所に集約して重複を減らす狙い
+        // （将来のPWA化・繰り返し課題などの拡張時もここを差し替えれば済むようにする）
+        // -----------------------------------------------------------------
+        function getTasks() {
+            var saved = localStorage.getItem(STORAGE_KEY); // 保存データをJSON文字列で取得する
+            return saved ? JSON.parse(saved) : [];          // あれば配列に変換、なければ空配列を返す
+        }
+
+        // -----------------------------------------------------------------
+        // saveTasks(tasks) : 課題配列をlocalStorageに保存する共通ヘルパー
+        // -----------------------------------------------------------------
+        function saveTasks(tasks) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); // 配列をJSON文字列にして書き込む
+        }
+
+        // -----------------------------------------------------------------
+        // nextOrder(tasks) : 末尾に追加する課題に付与する並び順（order）を決める
+        // 既存の最大order+1を返す。新規課題は常にリスト末尾に並ぶ
+        // -----------------------------------------------------------------
+        function nextOrder(tasks) {
+            var max = -1;                                  // 最大orderの初期値
+            for (var i = 0; i < tasks.length; i++) {       // 全課題を走査する
+                var o = (typeof tasks[i].order === 'number') ? tasks[i].order : 0; // orderがない古いデータは0扱い
+                if (o > max) max = o;                      // より大きければ更新する
+            }
+            return max + 1;                                // 最大値の次を返す
+        }
 
         // -----------------------------------------------------------------
         // showTab(tabName) : タブを切り替えてリストまたはカレンダーを表示する
@@ -1262,7 +1410,7 @@
 
         // -----------------------------------------------------------------
         // createTaskElement(task) : 課題オブジェクトを受け取り<li>要素を生成して返す
-        // renderTask() と updateTask() の両方から呼ばれる共通ヘルパー関数
+        // renderTaskList() から1件ずつ呼ばれる共通ヘルパー関数
         // -----------------------------------------------------------------
         function createTaskElement(task) {
             // 期限の文字列（YYYY-MM-DDTHH:MM）を日付と時刻に分解して日本語形式に変換する
@@ -1318,6 +1466,7 @@
             // <li>の中身をHTMLで組み立てる
             // 左側：課題情報（授業名・課題名・期限・カウントダウン・提出方法）、右側：完了・編集・削除ボタン
             li.innerHTML =
+                '<span class="drag-handle" title="ドラッグして並び替え" aria-label="ドラッグして並び替え">⠿</span>' + // 並び替え用のつまみ（このつまみをドラッグして順序変更する）
                 '<div class="task-info">' +                                                        // 課題情報をまとめるコンテナ開始
                   subjectHtml +                                                                    // 授業名（入力されている場合のみ科目色付きで表示）
                   '<span class="task-name">' + escapeHtml(task.name) + '</span>' +                // 課題名（XSS対策でエスケープ）
@@ -1335,50 +1484,137 @@
         }
 
         // -----------------------------------------------------------------
-        // renderTask(task) : createTaskElement()で生成した<li>をリスト末尾に追加する
-        // addTask() と loadTasks() から呼ばれる
+        // emptyMessageText() : 現在のフィルタに応じた「課題なし」メッセージを返す
         // -----------------------------------------------------------------
-        function renderTask(task) {
-            var li = createTaskElement(task);                      // 課題の<li>要素を生成する
-            document.getElementById('taskList').appendChild(li);   // 課題リストの末尾に<li>を追加する
+        function emptyMessageText() {
+            if (currentFilter === 'active') return '未完了の課題はありません。'; // 未完了フィルタ時
+            if (currentFilter === 'done')   return '完了した課題はありません。'; // 完了フィルタ時
+            return 'まだ課題が登録されていません。';                              // すべて表示で0件時
         }
 
         // -----------------------------------------------------------------
-        // loadTasks() : ページ読み込み時にlocalStorageから保存済み課題を読み込んで表示する
+        // renderTaskList() : localStorageの課題をorder順に並べ、現在のフィルタで
+        //   絞り込んで#taskListを丸ごと描画し直す。追加/編集/完了/削除/並び替えの
+        //   後は毎回これを呼べば表示とデータが常に一致する（部分更新をやめて単純化）
+        // -----------------------------------------------------------------
+        function renderTaskList() {
+            var list = document.getElementById('taskList'); // <ul>要素を取得する
+            list.innerHTML = '';                            // 既存の描画をすべて消去する
+
+            var tasks = getTasks(); // 保存済み課題を読み込む
+
+            // order（並び順）の昇順に並べる。orderがない古いデータは0扱いで先頭側に寄る
+            tasks.sort(function (a, b) {
+                var ao = (typeof a.order === 'number') ? a.order : 0; // aの並び順
+                var bo = (typeof b.order === 'number') ? b.order : 0; // bの並び順
+                return ao - bo;                                        // 昇順で比較する
+            });
+
+            // 現在のフィルタで表示対象だけに絞り込む
+            var filtered = tasks.filter(function (t) {
+                if (currentFilter === 'active') return !t.done;  // 未完了のみ
+                if (currentFilter === 'done')   return !!t.done; // 完了のみ
+                return true;                                     // すべて
+            });
+
+            // 表示対象が0件のときは案内メッセージを出して終了する
+            if (filtered.length === 0) {
+                var emptyLi = document.createElement('li');       // メッセージ用の<li>を生成する
+                emptyLi.id        = 'emptyMessage';               // 参照できるようIDを付ける
+                emptyLi.className  = 'empty-message';             // スタイルクラスを付ける
+                emptyLi.textContent = emptyMessageText();         // フィルタに応じた文言を設定する
+                list.appendChild(emptyLi);                        // リストに追加する
+                return;                                           // これ以上描画しない
+            }
+
+            // 絞り込んだ課題を順に描画する
+            for (var i = 0; i < filtered.length; i++) {
+                list.appendChild(createTaskElement(filtered[i])); // <li>を生成して末尾に追加する
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // setFilter(name) : すべて／未完了／完了 のフィルタを切り替えて再描画する
+        // name: 'all' / 'active' / 'done'
+        // -----------------------------------------------------------------
+        function setFilter(name) {
+            currentFilter = name; // 現在のフィルタを更新する
+
+            // 3つのフィルタボタンのactiveクラスを付け替える
+            document.getElementById('filterAll').classList.toggle('active',    name === 'all');
+            document.getElementById('filterActive').classList.toggle('active', name === 'active');
+            document.getElementById('filterDone').classList.toggle('active',   name === 'done');
+
+            renderTaskList(); // 絞り込み結果で一覧を描き直す
+        }
+
+        // -----------------------------------------------------------------
+        // loadTasks() : ページ読み込み時にlocalStorageのデータを整え（マイグレーション）、一覧を描画する
         // -----------------------------------------------------------------
         function loadTasks() {
-            var saved = localStorage.getItem(STORAGE_KEY); // localStorageからJSON文字列を取得する
-            if (!saved) {  // 保存データがまだ存在しない場合（初回アクセス時など）
-                return;    // 何もせずに終了する
-            }
+            var tasks = getTasks(); // 保存済み課題を読み込む（なければ空配列）
 
-            var tasks = JSON.parse(saved); // JSON文字列をJavaScriptの配列に変換する
-            if (tasks.length === 0) { // 配列が空（課題が0件）の場合も何もしない
-                return;
-            }
-
-            // idフィールドを持たない古いデータに対してIDを付与する（過去データとの後方互換性のため）
-            var needsResave = false;               // localStorageを保存し直すかどうかのフラグ
+            // --- 後方互換マイグレーション ---
+            // 古いデータには id や order が無い場合があるため、初回読み込み時に補う。
+            // これにより古い保存データを開いても壊れず、並び替え機能も動作するようにする。
+            var needsResave = false;                       // 保存し直しが必要かのフラグ
             for (var i = 0; i < tasks.length; i++) {
-                if (!tasks[i].id) {                        // idが存在しない課題の場合
-                    tasks[i].id = String(Date.now() + i);  // インデックスを加算して一意なIDを生成する
-                    needsResave = true;                    // 保存し直しが必要と記録する
+                if (!tasks[i].id) {                         // idが無い課題
+                    tasks[i].id = String(Date.now() + i);   // 一意なIDを生成して付与する
+                    needsResave = true;
+                }
+                if (typeof tasks[i].order !== 'number') {   // order（並び順）が無い課題
+                    tasks[i].order = i;                     // 現在の並び順（配列index）をそのまま採用する
+                    needsResave = true;
                 }
             }
-            if (needsResave) { // IDを付与した課題があった場合はlocalStorageを更新する
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+            if (needsResave) {        // 補完した項目があれば
+                saveTasks(tasks);     // localStorageへ保存し直す
             }
 
-            // 保存データがあるので「まだ登録されていません」メッセージを削除する
-            var emptyMsg = document.getElementById('emptyMessage'); // メッセージ要素を取得
-            if (emptyMsg) {    // 要素が存在する場合のみ削除（すでに削除済みなら何もしない）
-                emptyMsg.remove(); // DOMから要素を取り除く
+            renderTaskList(); // 現在のフィルタ（初期はすべて）で一覧を描画する
+        }
+
+        // -----------------------------------------------------------------
+        // persistOrderFromDom() : ドラッグ&ドロップ後、画面上の並び順をlocalStorageへ保存する
+        //   SortableJSのonEndから呼ばれる。フィルタで一部だけ表示中でも、
+        //   「表示されている課題が占めていた並び順の枠」の中だけを新しい順に入れ替え、
+        //   非表示の課題の位置は保ったままorderを振り直す。
+        // -----------------------------------------------------------------
+        function persistOrderFromDom() {
+            var tasks = getTasks(); // 全課題を読み込む（表示中・非表示の両方を含む）
+
+            // id → 課題オブジェクト の対応表を作る
+            var byId = {};
+            for (var i = 0; i < tasks.length; i++) { byId[tasks[i].id] = tasks[i]; }
+
+            // 現在DOMに並んでいる（＝表示中の）課題IDを、画面の新しい順で取得する
+            var lis = document.querySelectorAll('#taskList li[data-id]');
+            var visibleIds = [];
+            for (var j = 0; j < lis.length; j++) { visibleIds.push(lis[j].dataset.id); }
+
+            // 全課題を現在のorder順に並べる（並び替えの土台）
+            var sorted = tasks.slice().sort(function (a, b) {
+                return ((a.order || 0) - (b.order || 0));
+            });
+
+            // sorted内で「表示中の課題が入っている位置（枠）」を洗い出す
+            var slots = [];
+            for (var k = 0; k < sorted.length; k++) {
+                if (visibleIds.indexOf(sorted[k].id) !== -1) { slots.push(k); }
             }
 
-            // 保存されていたすべての課題をループして1件ずつリストに表示する
-            for (var j = 0; j < tasks.length; j++) { // インデックス0から順に末尾まで繰り返す
-                renderTask(tasks[j]); // 課題オブジェクトをDOMに描画するヘルパーを呼ぶ
+            // それらの枠に、画面の新しい順に並べた表示中課題を順番に流し込む
+            for (var s = 0; s < slots.length; s++) {
+                sorted[slots[s]] = byId[visibleIds[s]];
             }
+
+            // 先頭から通し番号でorderを振り直して保存する
+            for (var m = 0; m < sorted.length; m++) { sorted[m].order = m; }
+            saveTasks(sorted);
+
+            // カレンダー側は並び順の影響を受けないが、念のため表示中なら再描画する
+            refreshCalendarIfVisible();
         }
 
         // -----------------------------------------------------------------
@@ -1407,6 +1643,9 @@
                 return; // 以降の処理をキャンセルして関数を抜ける
             }
 
+            // --- localStorageへの保存処理 ---
+            var tasks = getTasks(); // 既存の課題配列を取得する（なければ空配列）
+
             // 入力値をひとつの課題オブジェクトにまとめる
             var task = {
                 id:       String(Date.now()), // 登録時刻のミリ秒を文字列化した一意なID（削除・編集時の特定に使う）
@@ -1414,31 +1653,20 @@
                 name:     name,               // 課題名
                 deadline: deadline,           // 期限（YYYY-MM-DDTHH:MM形式のまま保存）
                 method:   method,             // 提出方法
-                done:     false               // 完了状態（新規登録時は必ず未完了にする）
+                done:     false,              // 完了状態（新規登録時は必ず未完了にする）
+                order:    nextOrder(tasks)    // 並び順：既存の最大+1でリスト末尾に配置する
             };
 
-            // --- localStorageへの保存処理 ---
-            var saved = localStorage.getItem(STORAGE_KEY);           // 既存の保存データを取得する
-            var tasks = saved ? JSON.parse(saved) : [];               // データがあれば配列に変換、なければ空配列を用意する
-            tasks.push(task);                                         // 新しい課題を配列の末尾に追加する
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); // 配列をJSON文字列に変換してlocalStorageへ書き込む
+            tasks.push(task);   // 新しい課題を配列の末尾に追加する
+            saveTasks(tasks);   // localStorageへ保存する
 
-            // 「まだ登録されていません」メッセージが残っていれば削除する
-            var emptyMsg = document.getElementById('emptyMessage'); // メッセージ要素を取得
-            if (emptyMsg) {    // 要素が存在する場合のみ処理する
-                emptyMsg.remove(); // DOMから要素を取り除く
-            }
+            closeTaskForm(); // 入力フォームのモーダルを閉じて入力欄をリセットする
 
-            renderTask(task); // 追加した課題を画面のリストに即時表示する
+            // 新規課題は未完了のため、「完了」フィルタ表示中だと見えない。
+            // 追加した課題が確実に見えるよう「すべて」に切り替えて再描画する。
+            setFilter('all');
 
             refreshCalendarIfVisible(); // カレンダービューが開いていれば再描画して追加課題を反映する
-
-            // 登録後、入力欄をリセットして次の入力を準備する
-            document.getElementById('taskSubject').value        = '';  // 授業名の入力欄をクリアする
-            document.getElementById('taskName').value           = '';  // 課題名の入力欄をクリアする
-            document.getElementById('taskDeadlineDate').value   = '';  // 期限の日付入力欄をクリアする
-            document.getElementById('taskDeadlineTime').value   = '';  // 期限の時刻入力欄をクリアする
-            document.getElementById('taskMethod').selectedIndex = 0;   // 提出方法を先頭の選択肢に戻す
         }
 
         // -----------------------------------------------------------------
@@ -1450,8 +1678,7 @@
             var id = li.dataset.id;      // <li>のdata属性に紐付けたIDを取得する（編集対象を特定するため）
 
             // localStorageから対象IDに一致する課題オブジェクトを検索する
-            var saved = localStorage.getItem(STORAGE_KEY); // 保存データをJSON文字列で取得する
-            var tasks = saved ? JSON.parse(saved) : [];    // JSON文字列を配列に変換する
+            var tasks = getTasks();                        // 保存済み課題を配列で取得する
             var task  = null;                              // 見つかった課題を格納する変数
             for (var i = 0; i < tasks.length; i++) {       // 全課題をループして対象を探す
                 if (tasks[i].id === id) {                  // IDが一致した課題を見つけたら
@@ -1478,14 +1705,14 @@
             // 現在編集中の課題IDをグローバル変数に記録する（updateTask()で使う）
             editingId = id;
 
-            // 「登録する」ボタンを「更新する」ボタンに切り替える
+            // モーダルのタイトルとボタンを「編集／更新」モードに切り替える
+            document.getElementById('formModalTitle').textContent = '課題を編集する'; // ヘッダーのタイトル
             var submitBtn       = document.getElementById('submitBtn'); // ボタン要素を取得する
             submitBtn.textContent = '更新する';                          // ボタンのテキストを変更する
             submitBtn.onclick     = updateTask;                         // クリック時の関数をupdateTaskに切り替える
 
-            // フォームの先頭にスクロールしてカーソルを置く（ユーザーが気づきやすくする）
-            document.querySelector('.form-box').scrollIntoView({ behavior: 'smooth' }); // フォームエリアまでスクロールする
-            document.getElementById('taskName').focus();                                 // 課題名の入力欄にフォーカスを移す
+            // フォームのモーダルを開いて課題名の入力欄にフォーカスする
+            showFormModal();
         }
 
         // -----------------------------------------------------------------
@@ -1515,8 +1742,7 @@
             }
 
             // --- localStorageの更新処理 ---
-            var saved = localStorage.getItem(STORAGE_KEY);  // 保存データをJSON文字列で取得する
-            var tasks = saved ? JSON.parse(saved) : [];      // JSON文字列を配列に変換する
+            var tasks = getTasks();                          // 保存済み課題を配列で取得する
             for (var i = 0; i < tasks.length; i++) {         // 全課題をループして編集対象を探す
                 if (tasks[i].id === editingId) {              // IDが一致した課題を見つけたら
                     tasks[i].subject  = subject;              // 授業名を新しい値で上書きする
@@ -1526,40 +1752,12 @@
                     break;                                    // 更新完了したのでループを終了する
                 }
             }
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); // 更新した配列をlocalStorageへ書き込む
+            saveTasks(tasks); // 更新した配列をlocalStorageへ書き込む（order/doneは保持される）
 
-            // --- DOMのリスト表示を更新する処理 ---
-            // 対象の<li>要素を検索してselector（data-id属性）で取得する
-            var oldLi = document.querySelector('#taskList li[data-id="' + editingId + '"]');
-            if (oldLi) { // 対象の<li>が見つかった場合
-                // 更新後の課題オブジェクトを使って新しい<li>要素を生成する
-                var updatedTask = null;                        // 更新後の課題オブジェクトを格納する変数
-                for (var j = 0; j < tasks.length; j++) {      // 全課題をループして更新対象を探す
-                    if (tasks[j].id === editingId) {           // IDが一致した課題を見つけたら
-                        updatedTask = tasks[j];                // 変数に代入する
-                        break;                                 // ループを終了する
-                    }
-                }
-                var newLi = createTaskElement(updatedTask); // 新しい<li>要素を生成する
-                oldLi.replaceWith(newLi);                   // 古い<li>をその場で新しい<li>に差し替える（位置は変わらない）
-            }
-
-            // フォームの入力欄をリセットして次の新規登録を準備する
-            document.getElementById('taskSubject').value        = '';  // 授業名の入力欄をクリアする
-            document.getElementById('taskName').value           = '';  // 課題名の入力欄をクリアする
-            document.getElementById('taskDeadlineDate').value   = '';  // 期限の日付入力欄をクリアする
-            document.getElementById('taskDeadlineTime').value   = '';  // 期限の時刻入力欄をクリアする
-            document.getElementById('taskMethod').selectedIndex = 0;   // 提出方法を先頭の選択肢に戻す
-
-            // 「更新する」ボタンを「登録する」ボタンに戻す
-            var submitBtn       = document.getElementById('submitBtn'); // ボタン要素を取得する
-            submitBtn.textContent = '登録する';                          // ボタンのテキストを元に戻す
-            submitBtn.onclick     = addTask;                            // クリック時の関数をaddTaskに戻す
+            closeTaskForm();    // フォームのモーダルを閉じて入力欄と編集状態をリセットする
+            renderTaskList();   // 現在のフィルタで一覧を描き直して更新内容を反映する
 
             refreshCalendarIfVisible(); // カレンダービューが開いていれば再描画して更新内容を反映する
-
-            // 編集モードを終了してグローバル変数をリセットする
-            editingId = null; // nullに戻すことで次の操作が新規登録モードになる
         }
 
         // -----------------------------------------------------------------
@@ -1571,28 +1769,18 @@
             var id = li.dataset.id;     // <li>のdata属性に紐付けたIDを取得する（更新対象を特定するため）
 
             // localStorageの該当課題の done フィールドを反転する
-            var saved = localStorage.getItem(STORAGE_KEY); // 保存データをJSON文字列で取得する
-            var tasks = saved ? JSON.parse(saved) : [];    // JSON文字列を配列に変換する
+            var tasks = getTasks();                        // 保存済み課題を配列で取得する
             for (var i = 0; i < tasks.length; i++) {       // 全課題をループして対象を探す
                 if (tasks[i].id === id) {                  // IDが一致した課題を見つけたら
                     tasks[i].done = !tasks[i].done;        // trueならfalse、falseならtrueに反転する
                     break;                                 // 更新完了したのでループを終了する
                 }
             }
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); // 更新した配列をlocalStorageへ書き込む
+            saveTasks(tasks); // 更新した配列をlocalStorageへ書き込む
 
-            // DOMを更新して見た目に完了状態を反映する
-            // classList.toggle()はクラスを追加した場合にtrueを返す（＝完了になった）
-            var nowDone = li.classList.toggle('task-completed'); // グレー背景・取り消し線のクラスを切り替える
-            if (nowDone) {
-                // 未完了→完了 の切り替え
-                btn.textContent = '未完了';      // ボタンのテキストを「未完了」に変更する
-                btn.className   = 'btn-undone'; // ボタンのクラスをグレー系に切り替える
-            } else {
-                // 完了→未完了 の切り替え
-                btn.textContent = '完了';        // ボタンのテキストを「完了」に戻す
-                btn.className   = 'btn-done';   // ボタンのクラスを緑系に戻す
-            }
+            // 一覧を描き直す。フィルタ表示中（未完了/完了）は状態が変わった課題が
+            // 自動的に表示/非表示になり、絞り込みと表示が常に一致する。
+            renderTaskList();
 
             refreshCalendarIfVisible(); // カレンダービューが開いていれば再描画して完了状態を反映する
         }
@@ -1611,40 +1799,20 @@
             var li = btn.closest('li'); // ボタンの祖先をたどって親の<li>要素を取得する
             var id = li.dataset.id;     // <li>のdata属性に紐付けたIDを取得する（削除対象を特定するため）
 
-            // 削除対象が現在編集中の課題だった場合はフォームと編集状態をリセットする
-            if (id === editingId) {                                        // 編集中のIDと一致するか確認する
-                document.getElementById('taskSubject').value        = '';     // 授業名の入力欄をクリアする
-                document.getElementById('taskName').value           = '';     // 課題名の入力欄をクリアする
-                document.getElementById('taskDeadlineDate').value   = '';     // 期限の日付入力欄をクリアする
-                document.getElementById('taskDeadlineTime').value   = '';     // 期限の時刻入力欄をクリアする
-                document.getElementById('taskMethod').selectedIndex = 0;     // 提出方法を先頭に戻す
-                var submitBtn       = document.getElementById('submitBtn'); // ボタン要素を取得する
-                submitBtn.textContent = '登録する';                          // ボタンのテキストを元に戻す
-                submitBtn.onclick     = addTask;                            // クリック時の関数をaddTaskに戻す
-                editingId = null;                                           // 編集モードを終了する
+            // 削除対象が現在編集中の課題だった場合は、開いているフォームを閉じて編集状態をリセットする
+            if (id === editingId) {
+                closeTaskForm(); // モーダルを閉じ、入力欄・編集状態をまとめてリセットする
             }
 
             // localStorageから対象IDに一致する課題を除いた新しい配列を作成する
-            var saved    = localStorage.getItem(STORAGE_KEY); // 保存データをJSON文字列で取得する
-            var tasks    = saved ? JSON.parse(saved) : [];     // JSON文字列を配列に変換する
-            var newTasks = tasks.filter(function (t) {         // filterで条件に合う要素だけ残す
+            var newTasks = getTasks().filter(function (t) {   // filterで条件に合う要素だけ残す
                 return t.id !== id;                            // IDが一致しない課題（＝削除対象以外）を残す
             });
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(newTasks)); // 更新した配列をlocalStorageへ書き込む
+            saveTasks(newTasks); // 更新した配列をlocalStorageへ書き込む
 
-            li.remove(); // DOMから<li>要素を削除して画面上の表示を消す
+            renderTaskList(); // 一覧を描き直す（0件になれば案内メッセージが表示される）
 
             refreshCalendarIfVisible(); // カレンダービューが開いていれば再描画して削除を反映する
-
-            // 課題が0件になった場合は「まだ登録されていません」メッセージを再表示する
-            var list = document.getElementById('taskList'); // <ul>要素を取得する
-            if (list.children.length === 0) {               // 子要素（<li>）がひとつもない場合
-                var emptyLi       = document.createElement('li'); // 新しい<li>を生成する
-                emptyLi.id        = 'emptyMessage';               // 後で参照できるようIDを付ける
-                emptyLi.className = 'empty-message';              // スタイルを適用するクラスを付ける
-                emptyLi.textContent = 'まだ課題が登録されていません。'; // 表示するテキストを設定する
-                list.appendChild(emptyLi);                        // <ul>にメッセージ<li>を追加する
-            }
         }
 
         // -----------------------------------------------------------------
@@ -1804,6 +1972,52 @@
         }
 
         // -----------------------------------------------------------------
+        // resetTaskForm() : フォームの入力欄を空にし、編集状態を新規登録モードに戻す
+        // -----------------------------------------------------------------
+        function resetTaskForm() {
+            document.getElementById('taskSubject').value        = '';  // 授業名の入力欄をクリアする
+            document.getElementById('taskName').value           = '';  // 課題名の入力欄をクリアする
+            document.getElementById('taskDeadlineDate').value   = '';  // 期限の日付入力欄をクリアする
+            document.getElementById('taskDeadlineTime').value   = '';  // 期限の時刻入力欄をクリアする
+            document.getElementById('taskMethod').selectedIndex = 0;   // 提出方法を先頭の選択肢に戻す
+
+            // タイトルとボタンを新規登録モードに戻す
+            document.getElementById('formModalTitle').textContent = '課題を登録する'; // ヘッダーのタイトル
+            var submitBtn         = document.getElementById('submitBtn'); // ボタン要素を取得する
+            submitBtn.textContent = '登録する';                            // ボタンのテキストを元に戻す
+            submitBtn.onclick     = addTask;                              // クリック時の関数をaddTaskに戻す
+
+            editingId = null; // 編集モードを終了して次の操作を新規登録にする
+        }
+
+        // -----------------------------------------------------------------
+        // showFormModal() : フォームのモーダルを表示する（入力欄の中身は変更しない）
+        // 新規はopenTaskForm()、編集はstartEdit()から呼ばれる
+        // -----------------------------------------------------------------
+        function showFormModal() {
+            document.getElementById('formOverlay').style.display = 'block'; // オーバーレイを表示する
+            document.getElementById('formModal').style.display   = 'block'; // モーダル本体を表示する
+            document.getElementById('taskName').focus();                    // 課題名の入力欄にフォーカスする
+        }
+
+        // -----------------------------------------------------------------
+        // openTaskForm() : 「新規追加」ボタンから呼ばれ、空のフォームモーダルを開く
+        // -----------------------------------------------------------------
+        function openTaskForm() {
+            resetTaskForm(); // 入力欄を空にして新規登録モードにする
+            showFormModal();  // モーダルを表示する
+        }
+
+        // -----------------------------------------------------------------
+        // closeTaskForm() : フォームのモーダルを閉じ、入力欄と編集状態をリセットする
+        // -----------------------------------------------------------------
+        function closeTaskForm() {
+            document.getElementById('formOverlay').style.display = 'none'; // オーバーレイを非表示にする
+            document.getElementById('formModal').style.display   = 'none'; // モーダル本体を非表示にする
+            resetTaskForm(); // 次に開いたときのために入力欄と編集状態を初期化する
+        }
+
+        // -----------------------------------------------------------------
         // openSettings() : 設定モーダルを開く
         // -----------------------------------------------------------------
         function openSettings() {
@@ -1883,6 +2097,17 @@
         window.addEventListener('DOMContentLoaded', function () {
             loadMethods(); // 提出方法をlocalStorageから読み込んでドロップダウンを初期化する
             loadTasks();   // 課題データをlocalStorageから読み込んで一覧を表示する
+
+            // ドラッグ&ドロップ並び替えを有効化する（SortableJSがCDNから読み込めた場合のみ）
+            // window.Sortable が無い（オフライン等でCDN未読込）場合は並び替えなしで通常動作する
+            if (window.Sortable) {
+                Sortable.create(document.getElementById('taskList'), {
+                    handle:    '.drag-handle',   // このつまみをつかんだときだけドラッグを開始する（タッチ時のスクロールと両立させる）
+                    draggable: 'li[data-id]',    // data-idを持つ課題<li>だけを並び替え対象にする（空メッセージは対象外）
+                    animation: 150,              // 並び替え時のアニメーション時間(ms)
+                    onEnd:     persistOrderFromDom // ドロップ完了時に新しい並び順をlocalStorageへ保存する
+                });
+            }
 
             // 1分（60,000ミリ秒）ごとにカウントダウンを再計算して全表示を更新する
             // setIntervalは非同期で繰り返し実行されるため、ページを開いたまま時間が経過しても常に最新の残り時間を表示できる
